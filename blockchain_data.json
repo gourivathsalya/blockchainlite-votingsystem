@@ -1,0 +1,42 @@
+[
+  {
+    "index": 0,
+    "voter_id": "GENESIS",
+    "candidate": "GENESIS",
+    "timestamp": "2026-04-05 04:34:38.540173",
+    "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "hash": "3fbae98191a5a420deb113fe1f2fd9ae61bccc1a1d2e257b09238ecad07996e8"
+  },
+  {
+    "index": 1,
+    "voter_id": "VTR11017352",
+    "candidate": "Y.S. Jagan Mohan Reddy",
+    "timestamp": "2026-04-05 06:25:54.855859",
+    "previous_hash": "3fbae98191a5a420deb113fe1f2fd9ae61bccc1a1d2e257b09238ecad07996e8",
+    "hash": "a39aa71e5575c8d8e4947de326451c091a9cb9ee073cb0166cc7a19cd5e3a2f1"
+  },
+  {
+    "index": 2,
+    "voter_id": "VTR80988327",
+    "candidate": "Y.S. Jagan Mohan Reddy",
+    "timestamp": "2026-04-06 09:10:38.063657",
+    "previous_hash": "a39aa71e5575c8d8e4947de326451c091a9cb9ee073cb0166cc7a19cd5e3a2f1",
+    "hash": "aa1faac083c99a7c3807987cffb363567e8fd90c78a1eae34f8367b28b0465ae"
+  },
+  {
+    "index": 3,
+    "voter_id": "VTR49156715",
+    "candidate": "Narendra Modi",
+    "timestamp": "2026-04-06 09:57:57.291681",
+    "previous_hash": "aa1faac083c99a7c3807987cffb363567e8fd90c78a1eae34f8367b28b0465ae",
+    "hash": "3bb573145d2c798744bb1467ce752c1dc1215c910d3500cf5176d7ee183a23e0"
+  },
+  {
+    "index": 4,
+    "voter_id": "VTR85698384",
+    "candidate": "Rahul Gandhi",
+    "timestamp": "2026-04-06 10:05:54.369954",
+    "previous_hash": "3bb573145d2c798744bb1467ce752c1dc1215c910d3500cf5176d7ee183a23e0",
+    "hash": "78fd632afd55af0996d1e34752588aefbed7e6925efb4f0b92b01ba477dd44d6"
+  }
+]

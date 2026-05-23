@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verify {{ 'Phone' if contact_type == 'phone' else 'Email' }} | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,139,253,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,.04) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(56,139,253,.09) 0%,transparent 60%);animation:g1 16s ease-in-out infinite alternate}
+    .bg-glow2{position:absolute;bottom:-20%;right:-10%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(61,214,140,.07) 0%,transparent 60%);animation:g2 20s ease-in-out infinite alternate}
+    @keyframes g1{from{transform:translate(0,0)}to{transform:translate(8%,6%)}}
+    @keyframes g2{from{transform:translate(0,0)}to{transform:translate(-6%,-5%)}}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(56,139,253,.10)}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.03em}
+    .nav-brand .blue{color:#388bfd}
+    main{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:2.5rem 1.5rem}
+    .card{width:100%;max-width:430px;background:rgba(13,24,42,.85);border:1px solid rgba(56,139,253,.15);border-radius:24px;padding:3rem 2.4rem;box-shadow:0 32px 80px rgba(0,0,0,.5);text-align:center;animation:cardIn .5s cubic-bezier(.16,1,.3,1) both}
+    @keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+    /* Steps */
+    .steps{display:flex;align-items:center;justify-content:center;gap:.4rem;margin-bottom:2rem}
+    .step{display:flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:600;color:#2d3748;white-space:nowrap}
+    .step.active{color:#388bfd}
+    .step.done{color:#3dd68c}
+    .step-c{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;flex-shrink:0}
+    .step-line{flex:1;height:1.5px;background:rgba(255,255,255,.07);max-width:36px}
+    /* Header */
+    .step-icon{font-size:3.2rem;margin-bottom:1rem;display:block;animation:pop .6s cubic-bezier(.36,.07,.19,.97) both .2s}
+    @keyframes pop{0%,100%{transform:scale(1)}40%{transform:scale(1.15)}60%{transform:scale(.95)}}
+    .card-title{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#fff;letter-spacing:-.04em;margin-bottom:.5rem}
+    .card-title .blue{color:#388bfd}
+    .contact-chip{display:inline-flex;align-items:center;gap:.4rem;background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.18);color:#388bfd;padding:.38rem 1rem;border-radius:99px;font-size:.84rem;font-weight:600;margin:.7rem 0 1.2rem;word-break:break-all}
+    .card-sub{color:#8b949e;font-size:.87rem;line-height:1.6;margin-bottom:1.5rem}
+    /* Flash messages */
+    .flash{display:flex;align-items:flex-start;gap:.55rem;padding:.7rem 1rem;border-radius:10px;font-size:.84rem;font-weight:500;margin-bottom:.9rem;text-align:left}
+    .flash-success{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);color:#7ee8b5}
+    .flash-danger{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.25);color:#ffaaad}
+    .flash-warning{background:rgba(240,136,62,.08);border:1px solid rgba(240,136,62,.25);color:#ffc08a}
+    .flash-info{background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);color:#93bbfd}
+    /* OTP boxes */
+    .otp-row{display:flex;gap:.55rem;justify-content:center;margin-bottom:1.5rem}
+    .otp-box{width:50px;height:58px;background:rgba(4,9,15,.7);border:2px solid rgba(56,139,253,.14);border-radius:12px;color:#fff;font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;text-align:center;outline:none;transition:all .2s;caret-color:#388bfd}
+    .otp-box:focus{border-color:#388bfd;background:rgba(56,139,253,.06);box-shadow:0 0 0 3px rgba(56,139,253,.12)}
+    .otp-box.filled{border-color:rgba(61,214,140,.4);color:#3dd68c}
+    /* Verify button */
+    .btn-verify{width:100%;padding:.92rem;background:linear-gradient(135deg,#0d3320,#3dd68c);color:#051a0d;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:.98rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 4px 24px rgba(61,214,140,.22);margin-bottom:.9rem}
+    .btn-verify:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(61,214,140,.38)}
+    .btn-verify:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+    /* Timer */
+    .timer-row{display:flex;align-items:center;justify-content:center;gap:.4rem;color:#4a5568;font-size:.82rem;margin-bottom:.8rem}
+    .timer{font-weight:700;color:#e8b84b;font-family:monospace;font-size:.88rem}
+    .timer.expired{color:#f75f67}
+    /* Resend */
+    .btn-resend{background:none;border:none;color:#388bfd;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;padding:.3rem .55rem;border-radius:7px;transition:all .2s}
+    .btn-resend:hover{background:rgba(56,139,253,.08)}
+    .btn-resend:disabled{color:#2d3748;cursor:not-allowed}
+    .divider{border:none;border-top:1px solid rgba(56,139,253,.08);margin:1.2rem 0}
+    .back-link{display:inline-flex;align-items:center;gap:.4rem;color:#4a5568;font-size:.84rem;text-decoration:none;transition:color .2s}
+    .back-link:hover{color:#8b949e}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.4rem;color:#2d3748;font-size:.77rem;border-top:1px solid rgba(56,139,253,.06)}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div><div class="bg-glow2"></div></div>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">🗳️ Block<span class="blue">Vote</span></a>
+  </div>
+</nav>
+
+<main>
+  <div class="card">
+    <div class="steps">
+      <div class="step done"><div class="step-c">✓</div>&nbsp;Details</div>
+      <div class="step-line"></div>
+      <div class="step active"><div class="step-c">2</div>&nbsp;Verify {{ 'Phone' if contact_type == 'phone' else 'Email' }}</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-c">3</div>&nbsp;Voter ID</div>
+    </div>
+
+    <span class="step-icon">{% if contact_type == 'phone' %}📱{% else %}📧{% endif %}</span>
+    <div class="card-title">Verify Your <span class="blue">{{ 'Phone' if contact_type == 'phone' else 'Email' }}</span></div>
+    <div class="contact-chip">{% if contact_type == 'phone' %}📱{% else %}📬{% endif %} {{ contact }}</div>
+    <p class="card-sub">We sent a 6-digit code to your {{ 'phone number' if contact_type == 'phone' else 'email address' }}. Enter it below to complete registration.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/register/verify" id="otpForm">
+      <input type="hidden" name="action" value="verify"/>
+      <input type="hidden" name="otp" id="otpHidden"/>
+      <div class="otp-row">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="b0" autocomplete="one-time-code"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="b1"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="b2"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="b3"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="b4"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="b5"/>
+      </div>
+      <button type="submit" class="btn-verify" id="verifyBtn" disabled>
+        ✅ Verify &amp; Create Account
+      </button>
+    </form>
+
+    <div class="timer-row">
+      Code expires in <span class="timer" id="timer">5:00</span>
+    </div>
+
+    <form method="POST" action="/register/verify">
+      <input type="hidden" name="action" value="resend"/>
+      <button type="submit" class="btn-resend" id="resendBtn" disabled>🔄 Resend Code</button>
+    </form>
+
+    <hr class="divider"/>
+    <a href="/register" class="back-link">← Back to Registration</a>
+  </div>
+</main>
+
+<footer class="site-footer">&copy; BlockVote — Blockchain-Lite Voting System — Batch 87</footer>
+
+<script>
+var boxes = Array.prototype.slice.call(document.querySelectorAll('.otp-box'));
+
+boxes.forEach(function(box, i) {
+  box.addEventListener('input', function() {
+    box.value = box.value.replace(/[^0-9]/g, '');
+    if (box.value && i < 5) boxes[i + 1].focus();
+    box.classList.toggle('filled', !!box.value);
+    syncHidden();
+  });
+
+  box.addEventListener('keydown', function(e) {
+    if (e.key === 'Backspace' && !box.value && i > 0) {
+      boxes[i - 1].focus();
+      boxes[i - 1].value = '';
+      boxes[i - 1].classList.remove('filled');
+      syncHidden();
+    }
+  });
+
+  box.addEventListener('paste', function(e) {
+    e.preventDefault();
+    var pasted = (e.clipboardData || window.clipboardData)
+                  .getData('text').replace(/[^0-9]/g, '');
+    for (var j = 0; j < 6 && j < pasted.length; j++) {
+      boxes[j].value = pasted[j];
+      boxes[j].classList.add('filled');
+    }
+    boxes[Math.min(pasted.length, 5)].focus();
+    syncHidden();
+  });
+});
+
+function syncHidden() {
+  var otp = boxes.map(function(b) { return b.value; }).join('');
+  document.getElementById('otpHidden').value = otp;
+  document.getElementById('verifyBtn').disabled = (otp.length !== 6);
+}
+
+/* 10-minute countdown */
+var secs = 300;
+var timerEl = document.getElementById('timer');
+var resendBtn = document.getElementById('resendBtn');
+var resendEnabled = false;
+
+var tick = setInterval(function() {
+  secs--;
+  if (secs <= 0) {
+    clearInterval(tick);
+    timerEl.textContent = 'Expired';
+    timerEl.className = 'timer expired';
+    document.getElementById('verifyBtn').disabled = true;
+    if (!resendEnabled) { resendEnabled = true; resendBtn.disabled = false; }
+    return;
+  }
+  timerEl.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+  /* Enable resend after first 60 s */
+  if (!resendEnabled && secs <= 240) {
+    resendEnabled = true;
+    resendBtn.disabled = false;
+  }
+}, 1000);
+
+boxes[0].focus();
+</script>
+</body>
+</html>

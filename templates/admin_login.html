@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(232,184,75,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,184,75,.03) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(232,184,75,.07) 0%,transparent 60%);animation:g1 16s ease-in-out infinite alternate}
+    .bg-glow2{position:absolute;bottom:-20%;right:-10%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(247,95,103,.05) 0%,transparent 60%);animation:g2 20s ease-in-out infinite alternate}
+    @keyframes g1{from{transform:translate(0,0)}to{transform:translate(8%,6%)}}
+    @keyframes g2{from{transform:translate(0,0)}to{transform:translate(-6%,-5%)}}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.90);backdrop-filter:blur(28px);border-bottom:1px solid rgba(232,184,75,.10)}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.03em}
+    .nav-brand .gold{color:#e8b84b}
+    .nav-links a{padding:.4rem .95rem;border-radius:8px;text-decoration:none;color:#8b949e;font-size:.88rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover{color:#cdd9e5;background:rgba(255,255,255,.05)}
+    main{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem}
+    .card{width:100%;max-width:420px;background:rgba(13,24,42,.80);border:1px solid rgba(232,184,75,.12);border-radius:24px;padding:2.8rem 2.4rem;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:cardIn .5s cubic-bezier(.16,1,.3,1) both}
+    @keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:none}}
+    .admin-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.20);color:#ffaaad;padding:.32rem .9rem;border-radius:99px;font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-bottom:1.2rem}
+    .card-icon{font-size:2.8rem;text-align:center;margin-bottom:.8rem}
+    .card-title{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;text-align:center;letter-spacing:-.04em;margin-bottom:.4rem}
+    .card-title .gold{color:#e8b84b}
+    .card-sub{color:#8b949e;font-size:.88rem;text-align:center;margin-bottom:2rem;line-height:1.6}
+    .flash{display:flex;align-items:flex-start;gap:.6rem;padding:.75rem 1rem;border-radius:10px;font-size:.85rem;font-weight:500;margin-bottom:1.2rem}
+    .flash-success{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);color:#7ee8b5}
+    .flash-danger{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.25);color:#ffaaad}
+    .flash-warning{background:rgba(240,136,62,.08);border:1px solid rgba(240,136,62,.25);color:#ffc08a}
+    .flash-info{background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);color:#93bbfd}
+    .field{margin-bottom:1.3rem}
+    .field label{display:block;font-size:.8rem;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem}
+    .field input{width:100%;padding:.85rem 1rem .85rem 2.8rem;background:rgba(4,9,15,.7);border:1.5px solid rgba(232,184,75,.10);border-radius:11px;color:#fff;font-size:.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
+    .field input:focus{border-color:#e8b84b;background:rgba(232,184,75,.04);box-shadow:0 0 0 3px rgba(232,184,75,.08)}
+    .field input::placeholder{color:#2d3748}
+    .field-wrap{position:relative}
+    .f-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;opacity:.6}
+    .btn-submit{width:100%;padding:1rem;margin-top:.4rem;background:#e8b84b;color:#0a0600;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 4px 24px rgba(232,184,75,.30);display:flex;align-items:center;justify-content:center;gap:.5rem}
+    .btn-submit:hover{background:#f0c85a;transform:translateY(-2px);box-shadow:0 10px 36px rgba(232,184,75,.45)}
+    .btn-submit:active{transform:none}
+    .divider{border:none;border-top:1px solid rgba(232,184,75,.08);margin:1.6rem 0}
+    .card-footer{text-align:center;font-size:.85rem;color:#4a5568}
+    .card-footer a{color:#e8b84b;text-decoration:none;font-weight:600}
+    .card-footer a:hover{text-decoration:underline}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.5rem 2rem;color:#2d3748;font-size:.78rem;border-top:1px solid rgba(232,184,75,.06)}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div><div class="bg-glow2"></div></div>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">⚙️ Block<span class="gold">Vote</span> Admin</a>
+    <div class="nav-links">
+      <a href="/">🌐 Public Site</a>
+      <a href="/login">Voter Login</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="card">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div class="admin-badge">⚙️ Admin Portal</div>
+    </div>
+    <div class="card-icon">🔐</div>
+    <div class="card-title">Admin <span class="gold">Login</span></div>
+    <p class="card-sub">Restricted access. Enter your admin credentials to continue.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+
+    <form method="POST" action="/admin/login">
+      <div class="field">
+        <label for="username">Username</label>
+        <div class="field-wrap">
+          <span class="f-icon">👤</span>
+          <input type="text" id="username" name="username" placeholder="admin" required autocomplete="username"/>
+        </div>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="field-wrap">
+          <span class="f-icon">🔑</span>
+          <input type="password" id="password" name="password" placeholder="Enter password" required autocomplete="current-password"/>
+        </div>
+      </div>
+      <button type="submit" class="btn-submit">⚙️ Access Admin Panel</button>
+    </form>
+
+    <hr class="divider"/>
+    <div class="card-footer">
+      <a href="/">← Back to Public Site</a>
+    </div>
+  </div>
+</main>
+<footer class="site-footer">&copy; 2024 BlockVote Admin Panel &mdash; Batch 87</footer>
+</body>
+</html>

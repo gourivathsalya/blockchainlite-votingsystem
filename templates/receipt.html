@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vote Receipt | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;-webkit-font-smoothing:antialiased}
+    .no-print{position:relative;z-index:1}
+    .navbar{background:rgba(4,9,15,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(61,214,140,.10);padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none}
+    .nav-brand .blue{color:#388bfd}
+    .nav-actions{display:flex;gap:.7rem}
+    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;transition:all .2s}
+    .btn-green{background:rgba(61,214,140,.12);color:#3dd68c;border:1px solid rgba(61,214,140,.22)}
+    .btn-green:hover{background:rgba(61,214,140,.22)}
+    .btn-outline{background:transparent;color:#388bfd;border:1.5px solid rgba(56,139,253,.25)}
+    .btn-outline:hover{background:rgba(56,139,253,.08)}
+    .page{max-width:600px;margin:2rem auto;padding:0 1.5rem 4rem}
+    .receipt-card{background:rgba(13,24,42,.85);border:2px solid rgba(61,214,140,.25);border-radius:20px;padding:2.5rem;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .receipt-header{text-align:center;border-bottom:1px dashed rgba(61,214,140,.2);padding-bottom:1.5rem;margin-bottom:1.5rem}
+    .receipt-logo{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:.3rem}
+    .receipt-logo .blue{color:#388bfd}
+    .receipt-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:#3dd68c;margin-bottom:.2rem}
+    .receipt-sub{color:#8b949e;font-size:.82rem}
+    .seal{font-size:3rem;margin:.8rem 0;display:block}
+    .detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:.7rem 0;border-bottom:1px solid rgba(61,214,140,.07);font-size:.9rem}
+    .detail-row:last-child{border-bottom:none}
+    .dr-label{color:#8b949e;font-weight:500;flex-shrink:0;margin-right:1rem}
+    .dr-value{color:#fff;font-weight:600;text-align:right;word-break:break-all}
+    .hash-val{font-family:'Courier New',monospace;font-size:.72rem;color:#39d0d8;word-break:break-all}
+    .valid-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(61,214,140,.10);border:1px solid rgba(61,214,140,.25);color:#3dd68c;padding:.4rem 1rem;border-radius:99px;font-size:.82rem;font-weight:700;margin-top:1.2rem}
+    .receipt-footer{text-align:center;margin-top:1.5rem;padding-top:1.2rem;border-top:1px dashed rgba(61,214,140,.2);color:#4a5568;font-size:.78rem;line-height:1.6}
+
+    @media print {
+      body{background:#fff !important;color:#000 !important}
+      .no-print{display:none !important}
+      .receipt-card{background:#fff !important;border:2px solid #000 !important;box-shadow:none !important;color:#000 !important}
+      .receipt-logo,.receipt-title{color:#000 !important}
+      .receipt-logo .blue,.receipt-title,.valid-badge{color:#000 !important}
+      .dr-label{color:#555 !important}
+      .dr-value,.hash-val{color:#000 !important}
+      .receipt-footer{color:#555 !important}
+      .seal{display:block !important}
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar no-print">
+  <a href="/" class="nav-brand">🗳️ Block<span class="blue">Vote</span></a>
+  <div class="nav-actions">
+    <button onclick="window.print()" class="btn btn-green">🖨️ Print Receipt</button>
+    <a href="/dashboard" class="btn btn-outline">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="receipt-card" id="receiptCard">
+    <div class="receipt-header">
+      <div class="receipt-logo">🗳️ Block<span class="blue">Vote</span></div>
+      <div class="receipt-title">✅ Official Vote Receipt</div>
+      <div class="receipt-sub">{{ election['title'] if election else 'General Election' }}</div>
+      <span class="seal">🏛️</span>
+      <div class="valid-badge">✅ Vote Successfully Recorded on Blockchain</div>
+    </div>
+
+    <div class="detail-row">
+      <span class="dr-label">Voter Name</span>
+      <span class="dr-value">{{ voter['name'] }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="dr-label">Voter ID</span>
+      <span class="dr-value" style="font-family:'Courier New',monospace;color:#388bfd">{{ voter['voter_id'] }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="dr-label">Voted For</span>
+      <span class="dr-value" style="color:#e8b84b;font-size:1rem">{{ voter['voted_for'] }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="dr-label">Date &amp; Time</span>
+      <span class="dr-value">{{ voter['voted_at'] }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="dr-label">Blockchain Hash</span>
+      <span class="dr-value hash-val">{{ voter['block_hash'] or 'N/A' }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="dr-label">Election</span>
+      <span class="dr-value">{{ election['title'] if election else 'General Election' }}</span>
+    </div>
+
+    <div class="receipt-footer">
+      This receipt confirms your vote has been permanently recorded on the blockchain.<br>
+      This record is tamper-proof and immutable.<br><br>
+      &copy; BlockVote — Blockchain-Lite Voting System — Batch 87
+    </div>
+  </div>
+
+  <div class="no-print" style="margin-top:1.5rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap">
+    <button onclick="window.print()" class="btn btn-green" style="padding:.8rem 2rem;font-size:.95rem">🖨️ Print / Save as PDF</button>
+    <a href="/dashboard" class="btn btn-outline" style="padding:.8rem 2rem;font-size:.95rem">← Back to Dashboard</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;-webkit-font-smoothing:antialiased}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(232,184,75,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,184,75,.03) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(232,184,75,.07) 0%,transparent 60%);animation:g1 16s ease-in-out infinite alternate}
+    .bg-glow2{position:absolute;bottom:-20%;right:-10%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(247,95,103,.05) 0%,transparent 60%);animation:g2 20s ease-in-out infinite alternate}
+    @keyframes g1{from{transform:translate(0,0)}to{transform:translate(8%,6%)}}
+    @keyframes g2{from{transform:translate(0,0)}to{transform:translate(-6%,-5%)}}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.90);backdrop-filter:blur(28px);border-bottom:1px solid rgba(232,184,75,.10)}
+    .nav-inner{max-width:1300px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.03em}
+    .nav-brand .gold{color:#e8b84b}
+    .nav-links{display:flex;align-items:center;gap:.3rem}
+    .nav-links a{padding:.4rem .95rem;border-radius:8px;text-decoration:none;color:#8b949e;font-size:.88rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover{color:#cdd9e5;background:rgba(255,255,255,.05)}
+    .btn-gold{background:#e8b84b!important;color:#0a0600!important;font-weight:700!important}
+    .page{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:2.5rem 2rem 5rem}
+    .page-tag{font-size:.75rem;font-weight:700;color:#e8b84b;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.3rem}
+    .page-title{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;letter-spacing:-.04em;margin-bottom:1.5rem}
+    .flash{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.1rem;border-radius:10px;font-size:.88rem;font-weight:500;margin-bottom:1rem}
+    .flash-success{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);color:#7ee8b5}
+    .flash-danger{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.25);color:#ffaaad}
+    .flash-warning{background:rgba(240,136,62,.08);border:1px solid rgba(240,136,62,.25);color:#ffc08a}
+    .flash-info{background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);color:#93bbfd}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+    .stat-card{background:rgba(13,24,42,.75);border:1px solid rgba(232,184,75,.07);border-radius:14px;padding:1.2rem;position:relative;overflow:hidden;transition:transform .2s}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+    .sc-gold::before{background:linear-gradient(90deg,#7a5c10,#e8b84b)}.sc-blue::before{background:linear-gradient(90deg,#1a3a6a,#388bfd)}.sc-green::before{background:linear-gradient(90deg,#0d3320,#3dd68c)}.sc-purple::before{background:linear-gradient(90deg,#2a1a5c,#9b59b6)}
+    .stat-icon{font-size:1.3rem;margin-bottom:.5rem}
+    .stat-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;line-height:1;margin-bottom:.2rem}
+    .sc-gold .stat-num{color:#e8b84b}.sc-blue .stat-num{color:#388bfd}.sc-green .stat-num{color:#3dd68c}.sc-purple .stat-num{color:#9b59b6}
+    .stat-label{color:#8b949e;font-size:.72rem;font-weight:500}
+    .tabs{display:flex;gap:.3rem;border-bottom:1px solid rgba(232,184,75,.10);margin-bottom:1.5rem;overflow-x:auto;padding-bottom:1px}
+    .tab{padding:.65rem 1.3rem;border-radius:10px 10px 0 0;font-size:.85rem;font-weight:600;color:#8b949e;cursor:pointer;transition:all .2s;white-space:nowrap;border:1px solid transparent;border-bottom:none;margin-bottom:-1px}
+    .tab:hover{color:#cdd9e5;background:rgba(232,184,75,.05)}
+    .tab.active{color:#e8b84b;background:rgba(232,184,75,.08);border-color:rgba(232,184,75,.12)}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    .sc{background:rgba(13,24,42,.75);border:1px solid rgba(232,184,75,.07);border-radius:16px;padding:1.6rem;margin-bottom:1.2rem}
+    .sc-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:#fff;margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+    .chart-wrap{position:relative;height:300px;width:100%}
+    @media(max-width:700px){.two-col{grid-template-columns:1fr}}
+    .sc-title .sub{color:#4a5568;font-size:.76rem;font-weight:400;margin-left:auto}
+    .election-card{background:rgba(4,9,15,.5);border:1px solid rgba(232,184,75,.10);border-radius:14px;padding:1.4rem;margin-bottom:1rem}
+    .ec-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+    .ec-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;flex:1}
+    .ec-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .7rem;border-radius:99px;font-size:.72rem;font-weight:700}
+    .badge-open{background:rgba(61,214,140,.10);border:1px solid rgba(61,214,140,.22);color:#3dd68c}
+    .badge-closed{background:rgba(247,95,103,.10);border:1px solid rgba(247,95,103,.22);color:#f75f67}
+    .ec-dot{width:7px;height:7px;border-radius:50%;background:#3dd68c;animation:pulse 1.4s ease-in-out infinite}
+    .ec-dot-closed{background:#f75f67;animation:none}
+    .ec-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:9px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;transition:all .2s}
+    .btn-sm{padding:.35rem .75rem;font-size:.75rem}
+    .btn-xs{padding:.25rem .55rem;font-size:.7rem}
+    .btn-success{background:rgba(61,214,140,.12);color:#3dd68c;border:1px solid rgba(61,214,140,.22)}
+    .btn-success:hover{background:rgba(61,214,140,.22)}
+    .btn-danger{background:rgba(247,95,103,.12);color:#f75f67;border:1px solid rgba(247,95,103,.22)}
+    .btn-danger:hover{background:rgba(247,95,103,.22)}
+    .btn-outline{background:transparent;color:#e8b84b;border:1.5px solid rgba(232,184,75,.25)}
+    .btn-outline:hover{background:rgba(232,184,75,.08);border-color:#e8b84b}
+    .btn-gold-solid{background:#e8b84b;color:#0a0600;border:none}
+    .btn-gold-solid:hover{background:#f0c85a;transform:translateY(-1px)}
+    .btn-blue{background:rgba(56,139,253,.12);color:#388bfd;border:1px solid rgba(56,139,253,.22)}
+    .btn-blue:hover{background:rgba(56,139,253,.22)}
+    .btn-orange{background:rgba(240,136,62,.12);color:#ffc08a;border:1px solid rgba(240,136,62,.22)}
+    .btn-orange:hover{background:rgba(240,136,62,.22)}
+    .cand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.8rem;margin-top:.8rem}
+    .cand-card{background:rgba(13,24,42,.6);border:1px solid rgba(232,184,75,.08);border-radius:12px;padding:1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+    .cand-photo{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(232,184,75,.2);flex-shrink:0}
+    .cand-emoji{font-size:2rem;width:48px;text-align:center;flex-shrink:0}
+    .cand-name{font-weight:700;color:#fff;font-size:.9rem}
+    .cand-party{color:#8b949e;font-size:.75rem}
+    .cand-votes{font-family:'Syne',sans-serif;font-weight:800;color:#e8b84b;font-size:1.1rem;margin-left:auto;flex-shrink:0}
+    .add-cand-form{background:rgba(4,9,15,.4);border:1px dashed rgba(232,184,75,.15);border-radius:12px;padding:1.2rem;margin-top:1rem}
+    .add-cand-grid{display:grid;grid-template-columns:2fr 1.5fr 60px 80px auto;gap:.7rem;align-items:end;flex-wrap:wrap}
+    .form-label{display:block;font-size:.72rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+    .f-input{width:100%;padding:.7rem .9rem;background:rgba(4,9,15,.7);border:1.5px solid rgba(232,184,75,.10);border-radius:9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:all .2s}
+    .f-input:focus{border-color:#e8b84b;box-shadow:0 0 0 3px rgba(232,184,75,.08)}
+    .f-input::placeholder{color:#2d3748}
+    .f-input[type="file"]{padding:.55rem .9rem;font-size:.8rem;cursor:pointer}
+    .tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid rgba(232,184,75,.07)}
+    table{width:100%;border-collapse:collapse}
+    thead{background:rgba(232,184,75,.05)}
+    th{padding:.75rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+    td{padding:.8rem 1rem;font-size:.85rem;border-top:1px solid rgba(232,184,75,.05)}
+    tr:hover td{background:rgba(232,184,75,.02)}
+    .badge{display:inline-flex;align-items:center;padding:.25rem .7rem;border-radius:99px;font-size:.72rem;font-weight:700}
+    .badge-green{background:rgba(61,214,140,.10);border:1px solid rgba(61,214,140,.22);color:#3dd68c}
+    .badge-red{background:rgba(247,95,103,.10);border:1px solid rgba(247,95,103,.22);color:#f75f67}
+    .badge-muted{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#8b949e}
+    .badge-orange{background:rgba(240,136,62,.10);border:1px solid rgba(240,136,62,.22);color:#ffc08a}
+    .search-bar{width:100%;padding:.7rem 1rem;background:rgba(4,9,15,.6);border:1.5px solid rgba(232,184,75,.10);border-radius:10px;color:#cdd9e5;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:all .2s;margin-bottom:1rem}
+    .search-bar:focus{border-color:#e8b84b}
+    .hash-cell{font-family:'Courier New',monospace;font-size:.73rem;color:#39d0d8;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#3dd68c;animation:pulse 1.4s ease-in-out infinite;margin-right:.3rem}
+    .settings-input{width:100%;padding:.78rem 1rem;background:rgba(4,9,15,.7);border:1.5px solid rgba(232,184,75,.12);border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:all .2s;margin-bottom:.8rem}
+    .settings-input:focus{border-color:#e8b84b;box-shadow:0 0 0 3px rgba(232,184,75,.08)}
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(4,9,15,.88);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.show{display:flex}
+    .modal{background:#0d1a2a;border:1px solid rgba(247,95,103,.25);border-radius:20px;padding:2.2rem;max-width:440px;width:100%;box-shadow:0 28px 80px rgba(0,0,0,.7)}
+    .modal h3{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.5rem}
+    .modal p{color:#8b949e;font-size:.88rem;margin-bottom:1.4rem;line-height:1.6}
+    .modal-icon{font-size:2.6rem;margin-bottom:.8rem;display:block;text-align:center}
+    .modal-btns{display:flex;gap:.7rem}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.8rem 2rem;color:#2d3748;font-size:.8rem;border-top:1px solid rgba(232,184,75,.07)}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}.add-cand-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:600px){.nav-inner{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}}
+    /* ── Live Results ── */
+    .chart-wrap{position:relative;height:280px;width:100%}
+    .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem}
+    @media(max-width:700px){.results-grid{grid-template-columns:1fr}}
+    .rr{display:flex;align-items:center;gap:.9rem;padding:.85rem 1rem;border-radius:12px;background:rgba(4,9,15,.5);border:1px solid rgba(232,184,75,.06);margin-bottom:.5rem;transition:all .2s}
+    .rr.win{border-color:rgba(232,184,75,.25);background:rgba(232,184,75,.05)}
+    .rr-rank{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#4a5568;flex-shrink:0}
+    .rr-rank.gold{background:rgba(232,184,75,.15);color:#e8b84b}
+    .rr-emoji{font-size:1.4rem;flex-shrink:0}
+    .rr-info{flex:1;min-width:0}
+    .rr-name{font-weight:700;color:#fff;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rr-party{font-size:.75rem;color:#4a5568;margin-bottom:.35rem}
+    .pw{height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+    .pf{height:100%;border-radius:99px;background:linear-gradient(90deg,#e8b84b,#f0c85a);transition:width .6s ease}
+    .rr.win .pf{background:linear-gradient(90deg,#e8b84b,#ffd770)}
+    .rr-votes{text-align:right;flex-shrink:0}
+    .rr-count{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#e8b84b}
+    .rr-pct{font-size:.72rem;color:#4a5568}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:#3dd68c;display:inline-block;margin-right:.4rem;animation:livepulse 1.4s ease-in-out infinite}
+    @keyframes livepulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+    /* ── Winner Banner ── */
+    .winner-banner{display:none;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(232,184,75,.12),rgba(232,184,75,.04));border:2px solid rgba(232,184,75,.35);border-radius:18px;padding:2rem;text-align:center;margin-bottom:1.2rem}
+    .winner-banner.show{display:block}
+    .winner-crown{font-size:3.5rem;display:block;margin-bottom:.5rem;animation:crownbounce .8s cubic-bezier(.36,.07,.19,.97) both}
+    @keyframes crownbounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}60%{transform:scale(.95)}}
+    .winner-name{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#e8b84b;margin-bottom:.2rem}
+    .winner-sub{color:#8b949e;font-size:.88rem}
+    .confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettifall linear forwards}
+    @keyframes confettifall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(340px) rotate(720deg);opacity:0}}
+    /* ── Activity Log ── */
+    .log-entry{display:flex;align-items:flex-start;gap:.8rem;padding:.75rem 0;border-bottom:1px solid rgba(232,184,75,.05)}
+    .log-entry:last-child{border-bottom:none}
+    .log-icon{font-size:1.1rem;flex-shrink:0;margin-top:.1rem}
+    .log-time{font-size:.72rem;color:#4a5568;white-space:nowrap}
+    .log-msg{font-size:.84rem;color:#cdd9e5;flex:1}
+    /* ── Voter Modal ── */
+    .vmodal{background:#0d1a2a;border:1px solid rgba(56,139,253,.25);border-radius:20px;padding:2rem;max-width:480px;width:100%;box-shadow:0 28px 80px rgba(0,0,0,.7)}
+    .vrow{display:flex;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid rgba(56,139,253,.06);font-size:.85rem}
+    .vrow:last-child{border-bottom:none}
+    .vrow-label{color:#4a5568;font-weight:500}
+    .vrow-val{color:#cdd9e5;font-weight:600;text-align:right;word-break:break-all;max-width:60%}
+    /* ── Collapsible election cards ── */
+    .ec-body{transition:all .3s}
+    .ec-toggle{cursor:pointer;user-select:none;display:flex;align-items:center;gap:.5rem;flex:1}
+    .ec-chevron{font-size:.8rem;transition:transform .25s;color:#4a5568}
+    .ec-chevron.open{transform:rotate(180deg)}
+    /* ── Scheduler ── */
+    .scheduler-row{display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap;margin-top:.8rem;padding:.9rem 1rem;background:rgba(56,139,253,.04);border:1px solid rgba(56,139,253,.10);border-radius:10px}
+    .scheduler-row label{font-size:.72rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.3rem}
+    .scheduler-row input[type=datetime-local]{background:rgba(4,9,15,.7);border:1.5px solid rgba(56,139,253,.15);border-radius:9px;color:#cdd9e5;padding:.6rem .8rem;font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none}
+    .scheduler-row input[type=datetime-local]:focus{border-color:#388bfd}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div><div class="bg-glow2"></div></div>
+
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal" style="border-color:rgba(232,184,75,.25)">
+    <span class="modal-icon">✏️</span>
+    <h3 style="text-align:center">Edit Candidate</h3>
+    <form method="POST" id="editForm" action="" enctype="multipart/form-data">
+      <div style="margin:1rem 0">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" id="editName" required class="settings-input"/>
+        <label class="form-label">Party</label>
+        <input type="text" name="party" id="editParty" required class="settings-input"/>
+        <label class="form-label">Emoji</label>
+        <input type="text" name="emoji" id="editEmoji" maxlength="4" class="settings-input" style="width:80px;text-align:center;font-size:1.2rem"/>
+        <label class="form-label" style="margin-top:.6rem;display:block">Photo (optional)</label>
+        <input type="file" name="photo" accept="image/*" class="settings-input"/>
+      </div>
+      <div class="modal-btns">
+        <button type="submit" class="btn btn-gold-solid" style="flex:1;justify-content:center">💾 Save</button>
+        <button type="button" class="btn btn-outline" style="flex:1;justify-content:center" onclick="document.getElementById('editModal').classList.remove('show')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="voterModal">
+  <div class="vmodal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#fff">👤 Voter Details</div>
+      <button onclick="document.getElementById('voterModal').classList.remove('show')" style="background:none;border:none;color:#4a5568;font-size:1.4rem;cursor:pointer">✕</button>
+    </div>
+    <div id="voterModalBody"></div>
+  </div>
+</div>
+
+
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/admin" class="nav-brand">⚙️ Block<span class="gold">Vote</span> Admin</a>
+    <div class="nav-links">
+      <a href="/">🌐 Site</a>
+      <a href="/admin/logout" class="btn-gold">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-tag">⚙️ Admin Control Panel</div>
+  <div class="page-title">Election Dashboard</div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        {% if category=='success' %}✅{% elif category=='danger' %}❌{% elif category=='warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  
+  <div class="stats-grid">
+    <div class="stat-card sc-gold"><div class="stat-icon">🗳️</div><div class="stat-num">{{ elections | length }}</div><div class="stat-label">Total Elections</div></div>
+    <div class="stat-card sc-green"><div class="stat-icon">🔓</div><div class="stat-num">{{ elections | selectattr('is_open') | list | length }}</div><div class="stat-label">Open Elections</div></div>
+    <div class="stat-card sc-blue"><div class="stat-icon">👥</div><div class="stat-num">{{ total_voters }}</div><div class="stat-label">Registered Voters</div></div>
+    <div class="stat-card sc-purple"><div class="stat-icon">🚫</div><div class="stat-num">{{ blocked_count }}</div><div class="stat-label">Blocked Voters</div></div>
+  </div>
+
+  
+  
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('elections')">🗳️ Elections ({{ elections|length }})</div>
+    <div class="tab" onclick="switchTab('results')">📊 Live Results</div>
+    <div class="tab" onclick="switchTab('voters')">👥 Voters ({{ voters|length }})</div>
+    <div class="tab" onclick="switchTab('geography')">📍 Geography</div>
+    <div class="tab" onclick="switchTab('ledger')">⛓️ Ledger ({{ blockchain_data|length }})</div>
+    <div class="tab" onclick="switchTab('log')">📋 Activity Log</div>
+    <div class="tab" onclick="switchTab('settings')">⚙️ Settings</div>
+  </div>
+
+  
+  <div class="tab-panel" id="panel-results">
+   
+    <div class="winner-banner" id="winnerBanner">
+      <span class="winner-crown">🏆</span>
+      <div class="winner-name" id="winnerName">—</div>
+      <div class="winner-sub" id="winnerSub">Winner</div>
+    </div>
+    <div class="sc" style="margin-bottom:1.2rem">
+      <div class="sc-title">
+        <span class="live-dot"></span> Live Standings
+        <span class="sub" id="liveTotal">Loading…</span>
+        <span class="sub" style="margin-left:0" id="liveTurnout"></span>
+      </div>
+      <div id="standingsList"><div style="text-align:center;padding:2rem;color:#4a5568">Loading…</div></div>
+    </div>
+    <div class="results-grid">
+      <div class="sc">
+        <div class="sc-title">🥧 Vote Share</div>
+        <div class="chart-wrap"><canvas id="adminPieChart"></canvas></div>
+      </div>
+      <div class="sc">
+        <div class="sc-title">📊 Vote Count</div>
+        <div class="chart-wrap"><canvas id="adminBarChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  
+  <div class="tab-panel" id="panel-elections">
+
+    
+    <div class="sc">
+      <div class="sc-title">➕ Create New Election</div>
+      <form method="POST" action="/admin/election/create" style="display:flex;gap:.8rem;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:2;min-width:220px">
+          <label class="form-label">Election Title</label>
+          <input type="text" name="title" placeholder="e.g. Vijayawada Central MLA Election 2024" required class="f-input"/>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="form-label">Election Type</label>
+          <select name="election_type" class="f-input" style="padding:.72rem 1rem">
+            {% for t in election_types %}
+            <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="form-label">Region</label>
+          <select id="adminRegion" class="f-input" style="padding:.72rem 1rem" onchange="adminLoadDistricts(this.value)">
+            <option value="">— All / General —</option>
+            {% for r in regions %}
+            <option value="{{ r.id }}">{{ r.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="form-label">District</label>
+          <select id="adminDistrict" class="f-input" style="padding:.72rem 1rem" onchange="adminLoadConstituencies(this.value)" disabled>
+            <option value="">— Select District —</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label class="form-label">Constituency (optional)</label>
+          <select id="adminConst" name="constituency_id" class="f-input" style="padding:.72rem 1rem" disabled>
+            <option value="">— All / General —</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-gold-solid" style="padding:.75rem 1.5rem">➕ Create Election</button>
+      </form>
+      <!-- Scheduler -->
+      <div class="scheduler-row" id="schedulerRow" style="display:none">
+        <div>
+          <label>🕐 Auto-Open At</label>
+          <input type="datetime-local" id="schedOpen" name="start_time"/>
+        </div>
+        <div>
+          <label>🕐 Auto-Close At</label>
+          <input type="datetime-local" id="schedClose" name="end_time"/>
+        </div>
+        <div style="align-self:end">
+          <button type="button" class="btn btn-blue btn-sm" onclick="applyScheduler()">⏰ Schedule</button>
+        </div>
+        <div style="align-self:end;color:#4a5568;font-size:.78rem" id="schedStatus"></div>
+      </div>
+      <div style="margin-top:.6rem">
+        <button type="button" class="btn btn-outline btn-sm" onclick="toggleScheduler()">⏰ Set Start/End Time</button>
+      </div>
+    </div>
+
+  
+    {% for el in elections %}
+    <div class="election-card" id="ecard-{{ el.id }}">
+      <div class="ec-header" onclick="toggleCard({{ el.id }})" style="cursor:pointer">
+        <div class="ec-dot {% if not el.is_open %}ec-dot-closed{% endif %}"></div>
+        <div class="ec-toggle">
+          <div style="flex:1">
+            <div class="ec-title">{{ el.title }}</div>
+            <div style="color:#8b949e;font-size:.78rem;margin-top:.1rem">
+              Created: {{ el.created_at[:10] if el.created_at else '—' }} · {{ el.total_votes }} vote(s) cast · {{ el.candidates|length }} candidates
+              {% if el.election_type and el.election_type != 'General' %}
+              · <span style="color:#e8b84b;font-weight:600">{{ el.election_type }}</span>
+              {% endif %}
+              {% if el.constituency_name %}
+              · <span style="color:#3dd68c">📍 {{ el.constituency_name }}{% if el.district_name %}, {{ el.district_name }}{% endif %}</span>
+              {% endif %}
+            </div>
+          </div>
+          <span class="ec-chevron open" id="chevron-{{ el.id }}">▼</span>
+        </div>
+        <span class="ec-badge {% if el.is_open %}badge-open{% else %}badge-closed{% endif %}">
+          {% if el.is_open %}🔓 OPEN{% else %}🔒 CLOSED{% endif %}
+        </span>
+        {% if el.winner %}
+        <span style="background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.3);color:#e8b84b;padding:.25rem .7rem;border-radius:99px;font-size:.72rem;font-weight:700">🏆 {{ el.winner.name }}</span>
+        {% endif %}
+      </div>
+
+      <div class="ec-body" id="ecbody-{{ el.id }}">
+
+     
+      <div class="ec-actions">
+        <form method="POST" action="/admin/election/{{ el.id }}/toggle" style="display:inline">
+          <button type="submit" class="btn btn-sm {% if el.is_open %}btn-danger{% else %}btn-success{% endif %}">
+            {% if el.is_open %}🔒 Close{% else %}🔓 Open{% endif %}
+          </button>
+        </form>
+        <button onclick="openEmailModal({{ el.id }}, '{{ el.title|replace("'","\\'") }}', {{ el.total_votes }})" class="btn btn-sm btn-blue">📧 Email Results</button>
+        <form method="POST" action="/admin/election/{{ el.id }}/reset" onsubmit="return confirm('Reset ALL votes in &quot;{{ el.title }}&quot;? Cannot be undone.')" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-orange">⚠️ Reset Votes</button>
+        </form>
+        <form method="POST" action="/admin/election/{{ el.id }}/delete" onsubmit="return confirm('Delete &quot;{{ el.title }}&quot; and all its candidates? Cannot be undone.')" style="display:inline">
+          <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+        </form>
+        <!-- Edit title -->
+        <form method="POST" action="/admin/election/{{ el.id }}/title" style="display:inline-flex;gap:.4rem;align-items:center;flex:1;min-width:200px">
+          <input type="text" name="title" value="{{ el.title }}" class="f-input" style="padding:.4rem .7rem;font-size:.78rem"/>
+          <button type="submit" class="btn btn-sm btn-outline">✏️</button>
+        </form>
+      </div>
+
+      
+      <div>
+        <div style="font-size:.78rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.7rem">🏅 Candidates</div>
+        <div class="cand-grid">
+          {% for c in el.candidates %}
+          <div class="cand-card">
+            {% if c.photo %}
+              <img src="/static/uploads/candidates/{{ c.photo }}" class="cand-photo" alt="{{ c.name }}"/>
+            {% else %}
+              <div class="cand-emoji">{{ c.emoji }}</div>
+            {% endif %}
+            <div style="flex:1;min-width:0">
+              <div class="cand-name">{{ c.name }}</div>
+              <div class="cand-party">{{ c.party }}</div>
+            </div>
+            <div class="cand-votes">{{ c.vote_count }}</div>
+            <div style="display:flex;gap:.3rem;flex-shrink:0">
+              <button onclick="openEditModal({{ c.id }}, '{{ c.name|replace("'","\\'") }}', '{{ c.party|replace("'","\\'") }}', '{{ c.emoji }}')" class="btn btn-xs btn-outline">✏️</button>
+              <form method="POST" action="/admin/candidate/remove/{{ c.id }}" onsubmit="return confirmRemove('{{ c.name|replace("'","\\'") }}', {{ c.vote_count }})" style="display:inline">
+                <button type="submit" class="btn btn-xs btn-danger">🗑️</button>
+              </form>
+            </div>
+          </div>
+          {% else %}
+          <div style="color:#4a5568;font-size:.85rem;padding:.5rem">No candidates yet. Add below.</div>
+          {% endfor %}
+        </div>
+
+        
+        <div class="add-cand-form">
+          <div style="font-size:.78rem;font-weight:700;color:#8b949e;margin-bottom:.8rem">➕ Add Candidate to "{{ el.title }}"</div>
+          <form method="POST" action="/admin/candidate/add" enctype="multipart/form-data">
+            <input type="hidden" name="election_id" value="{{ el.id }}"/>
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 60px 1.5fr auto auto;gap:.6rem;align-items:end;flex-wrap:wrap">
+              <div>
+                <label class="form-label">Name</label>
+                <input type="text" name="name" placeholder="Candidate name" required class="f-input"/>
+              </div>
+              <div>
+                <label class="form-label">Party</label>
+                <input type="text" name="party" placeholder="Party name" required class="f-input"/>
+              </div>
+              <div>
+                <label class="form-label">Emoji</label>
+                <input type="text" name="emoji" value="🗳️" maxlength="4" class="f-input" style="text-align:center;font-size:1.1rem"/>
+              </div>
+              <div>
+                <label class="form-label">Constituency (optional)</label>
+                <select name="constituency_id" class="f-input" style="padding:.72rem .7rem">
+                  <option value="">— General / All —</option>
+                  {% for c in constituencies %}
+                  <option value="{{ c.id }}" {% if el.constituency_id == c.id %}selected{% endif %}>
+                    {{ c.name }} ({{ c.district_name }})
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Photo</label>
+                <input type="file" name="photo" accept="image/*" class="f-input" style="min-width:120px"/>
+              </div>
+              <div style="align-self:end">
+                <button type="submit" class="btn btn-gold-solid">➕ Add</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      </div><!-- /ec-body -->
+    </div>
+    {% else %}
+    <div class="sc" style="text-align:center;padding:3rem;color:#4a5568">No elections yet. Create one above.</div>
+    {% endfor %}
+  </div>
+
+  
+  <div class="tab-panel" id="panel-geography">
+    <div class="sc">
+      <div class="sc-title">📍 Constituencies by Region &amp; District</div>
+      <div style="margin-bottom:1.2rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center">
+        <select id="geoRegionFilter" class="f-input" style="max-width:200px;padding:.6rem .9rem" onchange="filterGeo(this.value)">
+          <option value="">All Regions</option>
+          {% for r in regions %}
+          <option value="{{ r.id }}">{{ r.name }}</option>
+          {% endfor %}
+        </select>
+        <span style="color:#4a5568;font-size:.82rem">{{ constituencies|length }} constituencies across {{ districts|length }} districts</span>
+      </div>
+
+      
+      <form method="POST" action="/admin/constituency/add" style="display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.5rem;background:rgba(56,139,253,.04);border:1px solid rgba(56,139,253,.10);border-radius:12px;padding:1rem">
+        <div style="font-size:.78rem;font-weight:700;color:#388bfd;width:100%;margin-bottom:.3rem">➕ Add New Constituency</div>
+        <div style="flex:2;min-width:180px">
+          <label class="form-label">Constituency Name</label>
+          <input type="text" name="name" placeholder="e.g. Vijayawada North" required class="f-input"/>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="form-label">District</label>
+          <select name="district_id" class="f-input" style="padding:.72rem .9rem" required>
+            <option value="">— Select District —</option>
+            {% for d in districts %}
+            <option value="{{ d.id }}">{{ d.name }} ({{ d.region_name }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-gold-solid">➕ Add</button>
+      </form>
+
+      
+      {% for region in regions %}
+      <div class="geo-region-block" data-region-id="{{ region.id }}" style="margin-bottom:1.5rem">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#e8b84b;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem">
+          🗺️ {{ region.name }}
+          <span style="background:rgba(232,184,75,.10);border:1px solid rgba(232,184,75,.20);color:#e8b84b;padding:.15rem .6rem;border-radius:99px;font-size:.7rem;font-weight:700">
+            {{ constituencies | selectattr('region_name','eq',region.name) | list | length }} constituencies
+          </span>
+        </div>
+        {% for district in districts if district.region_id == region.id %}
+        <div style="margin-bottom:1rem;padding:.9rem 1rem;background:rgba(13,24,42,.6);border:1px solid rgba(56,139,253,.08);border-radius:12px">
+          <div style="font-size:.82rem;font-weight:700;color:#388bfd;margin-bottom:.6rem">
+            🏙️ {{ district.name }}
+            <span style="color:#4a5568;font-weight:400"> — {{ constituencies | selectattr('district_name','eq',district.name) | list | length }} constituencies</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+            {% for c in constituencies if c.district_id == district.id %}
+            <div style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(56,139,253,.06);border:1px solid rgba(56,139,253,.12);border-radius:8px;padding:.28rem .7rem;font-size:.78rem;color:#cdd9e5">
+              🏛️ {{ c.name }}
+              <form method="POST" action="/admin/constituency/delete/{{ c.id }}" style="display:inline" onsubmit="return confirm('Delete {{ c.name }}?')">
+                <button type="submit" style="background:none;border:none;color:#4a5568;cursor:pointer;font-size:.7rem;padding:0 0 0 .3rem;line-height:1" title="Delete">✕</button>
+              </form>
+            </div>
+            {% else %}
+            <span style="color:#4a5568;font-size:.8rem">No constituencies added yet.</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+ 
+  <div class="tab-panel" id="panel-voters">
+    <div class="sc">
+      <div class="sc-title" style="justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <span>👥 Registered Voters <span class="sub">{{ voters|length }} total</span></span>
+        <a href="/admin/voter/export" class="btn btn-blue btn-sm">📥 Export CSV</a>
+      </div>
+      <input class="search-bar" id="voterSearch" placeholder="🔍 Search by name, Voter ID or email…" oninput="filterVoters(this.value)"/>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Voter ID</th><th>Name</th><th>Contact</th><th>Constituency</th><th>Age</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="votersTbody">
+            {% for v in voters %}
+            <tr style="cursor:pointer" onclick="openVoterModal({{ v|tojson }})">
+              <td><code style="color:#388bfd;font-size:.76rem">{{ v.voter_id }}</code></td>
+              <td style="font-weight:600;color:#cdd9e5">{{ v.name }}</td>
+              <td style="color:#8b949e;font-size:.8rem">{{ v.email or v.phone or '—' }}</td>
+              <td style="color:#8b949e;font-size:.78rem">
+                {% if v.constituency_id %}
+                  {% for c in constituencies if c.id == v.constituency_id %}
+                    <span title="{{ c.district_name }}, {{ c.region_name }}">📍 {{ c.name }}</span>
+                  {% endfor %}
+                {% else %}—{% endif %}
+              </td>
+              <td style="color:#8b949e">{{ v.age or '—' }}</td>
+              <td>
+                {% if v.is_blocked %}<span class="badge badge-red">🚫 Blocked</span>
+                {% elif v.has_voted %}<span class="badge badge-green">✅ Voted</span>
+                {% else %}<span class="badge badge-muted">⏳ Pending</span>{% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:.4rem">
+                  <form method="POST" action="/admin/voter/block/{{ v.id }}" style="display:inline">
+                    <button type="submit" class="btn btn-xs {% if v.is_blocked %}btn-success{% else %}btn-orange{% endif %}">{% if v.is_blocked %}🔓{% else %}🚫{% endif %}</button>
+                  </form>
+                  {% if not v.has_voted %}
+                  <form method="POST" action="/admin/voter/delete/{{ v.id }}" onsubmit="return confirm('Delete {{ v.name }}?')" style="display:inline">
+                    <button type="submit" class="btn btn-xs btn-danger">🗑️</button>
+                  </form>{% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#4a5568">No voters yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="tab-panel" id="panel-ledger">
+    <div class="sc">
+      <div class="sc-title">⛓️ Blockchain Ledger <span class="sub">{{ blockchain_data|length }} blocks</span></div>
+      {% if chain_valid %}
+        <div style="display:flex;align-items:center;gap:.8rem;padding:1rem 1.2rem;background:rgba(61,214,140,.07);border:1px solid rgba(61,214,140,.20);border-radius:12px;margin-bottom:1.2rem">
+          <span style="font-size:1.4rem">✅</span><div><strong style="color:#fff;display:block">Chain Integrity Verified</strong><span style="color:#8b949e;font-size:.78rem">All blocks cryptographically linked.</span></div>
+        </div>
+      {% else %}
+        <div style="display:flex;align-items:center;gap:.8rem;padding:1rem 1.2rem;background:rgba(247,95,103,.07);border:1px solid rgba(247,95,103,.20);border-radius:12px;margin-bottom:1.2rem">
+          <span style="font-size:1.4rem">❌</span><div><strong style="color:#fff;display:block">Chain Integrity Warning</strong></div>
+        </div>
+      {% endif %}
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Block</th><th>Voter ID</th><th>Candidate</th><th>Timestamp</th><th>Hash</th></tr></thead>
+          <tbody>
+            {% for block in blockchain_data %}
+            <tr>
+              <td style="font-family:'Courier New',monospace;color:#e8b84b;font-weight:700">#{{ block.index }}</td>
+              <td>{% if block.voter_id=='GENESIS' %}<span class="badge badge-muted">GENESIS</span>{% else %}<code style="color:#388bfd;font-size:.75rem">{{ block.voter_id }}</code>{% endif %}</td>
+              <td style="font-weight:600;color:#cdd9e5">{{ block.candidate if block.voter_id!='GENESIS' else '—' }}</td>
+              <td style="color:#4a5568;font-size:.76rem">{{ block.timestamp }}</td>
+              <td class="hash-cell" title="{{ block.hash }}">{{ block.hash[:24] }}…</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:#4a5568">No blocks yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="tab-panel" id="panel-log">
+    <div class="sc">
+      <div class="sc-title">📋 Activity Log <span class="sub" id="logCount">0 entries</span>
+        <button onclick="clearLog()" class="btn btn-sm btn-danger" style="margin-left:auto">🗑️ Clear Log</button>
+      </div>
+      <div id="activityLog" style="max-height:520px;overflow-y:auto">
+        <div style="text-align:center;padding:2rem;color:#4a5568">No activity recorded yet.</div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="tab-panel" id="panel-settings">
+    <div class="sc">
+      <div class="sc-title">🔒 Change Admin Password</div>
+      <form method="POST" action="/admin/settings/password" style="max-width:420px">
+        <label class="form-label">Current Password</label>
+        <input type="password" name="current_password" required class="settings-input" placeholder="Current password"/>
+        <label class="form-label">New Password</label>
+        <input type="password" name="new_password" required minlength="6" class="settings-input" placeholder="Min 6 characters"/>
+        <label class="form-label">Confirm New Password</label>
+        <input type="password" name="confirm_password" required class="settings-input" placeholder="Re-enter new password"/>
+        <button type="submit" class="btn btn-danger">🔒 Change Password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="emailModal">
+  <div class="modal" style="border-color:rgba(56,139,253,.25)">
+    <span class="modal-icon">📧</span>
+    <h3 id="emailModalTitle" style="text-align:center">Email Results</h3>
+    <p id="emailModalBody" style="text-align:center">Send final results to all registered voters with email addresses.</p>
+    <div class="modal-btns">
+      <form id="emailForm" method="POST" action="" style="flex:1">
+        <button type="submit" class="btn btn-blue" style="width:100%;justify-content:center">📧 Send Results Email</button>
+      </form>
+      <button type="button" class="btn btn-outline" style="flex:1;justify-content:center" onclick="document.getElementById('emailModal').classList.remove('show')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">&copy; 2024 BlockVote Admin Panel — Batch 87</footer>
+
+<script>
+
+var TAB_NAMES = ['elections','results','voters','geography','ledger','log','settings'];
+
+function switchTab(name) {
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('active', TAB_NAMES[i] === name);
+  var panels = document.querySelectorAll('.tab-panel');
+  for (var j = 0; j < panels.length; j++) panels[j].classList.remove('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  history.replaceState(null, '', '#tab-' + name);
+  if (name === 'results') {
+    refreshResults();
+    if (!resultsInterval) resultsInterval = setInterval(refreshResults, 10000);
+  } else {
+    if (resultsInterval) { clearInterval(resultsInterval); resultsInterval = null; }
+  }
+}
+(function () {
+  var h = window.location.hash;
+  if (h && h.startsWith('#tab-')) switchTab(h.replace('#tab-', ''));
+})();
+
+
+function toggleCard(id) {
+  var body    = document.getElementById('ecbody-' + id);
+  var chevron = document.getElementById('chevron-' + id);
+  var open    = body.style.display !== 'none';
+  body.style.display    = open ? 'none' : '';
+  chevron.classList.toggle('open', !open);
+  logAction(open ? '🔽 Collapsed election card #' + id : '🔼 Expanded election card #' + id);
+}
+
+
+function toggleScheduler() {
+  var row = document.getElementById('schedulerRow');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+
+function applyScheduler() {
+  var open  = document.getElementById('schedOpen').value;
+  var close = document.getElementById('schedClose').value;
+  var status = document.getElementById('schedStatus');
+  if (!open && !close) { status.textContent = '⚠️ Set at least one time.'; return; }
+  if (open && close && new Date(open) >= new Date(close)) {
+    status.textContent = '⚠️ Open time must be before close time.'; return;
+  }
+  // Store in localStorage keyed to election (use latest election id from page)
+  var schedules = JSON.parse(localStorage.getItem('bv_schedules') || '{}');
+  var now = new Date();
+  // Find the most recently created election id from the page
+  var cards = document.querySelectorAll('[id^="ecard-"]');
+  if (!cards.length) { status.textContent = '⚠️ No elections found.'; return; }
+  var latestId = cards[cards.length - 1].id.replace('ecard-', '');
+  schedules[latestId] = { open: open, close: close };
+  localStorage.setItem('bv_schedules', JSON.stringify(schedules));
+  status.textContent = '✅ Scheduled!';
+  logAction('⏰ Scheduler set for election #' + latestId + (open ? ' | Opens: ' + open : '') + (close ? ' | Closes: ' + close : ''));
+  checkSchedules();
+}
+
+function checkSchedules() {
+  var schedules = JSON.parse(localStorage.getItem('bv_schedules') || '{}');
+  var now = new Date();
+  Object.keys(schedules).forEach(function(eid) {
+    var s = schedules[eid];
+    if (s.open && !s._opened && new Date(s.open) <= now) {
+      s._opened = true;
+      logAction('🔓 Auto-opened election #' + eid + ' (scheduled)');
+      fetch('/admin/election/' + eid + '/toggle', { method: 'POST' })
+        .then(function() { logAction('✅ Election #' + eid + ' opened via scheduler'); });
+    }
+    if (s.close && !s._closed && new Date(s.close) <= now) {
+      s._closed = true;
+      logAction('🔒 Auto-closed election #' + eid + ' (scheduled)');
+      fetch('/admin/election/' + eid + '/toggle', { method: 'POST' })
+        .then(function() { logAction('✅ Election #' + eid + ' closed via scheduler'); });
+    }
+  });
+  localStorage.setItem('bv_schedules', JSON.stringify(schedules));
+}
+setInterval(checkSchedules, 30000);
+checkSchedules();
+
+
+var activityLog = JSON.parse(localStorage.getItem('bv_activity_log') || '[]');
+
+function logAction(msg) {
+  var now = new Date();
+  var ts  = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
+  activityLog.unshift({ msg: msg, ts: ts });
+  if (activityLog.length > 200) activityLog = activityLog.slice(0, 200);
+  localStorage.setItem('bv_activity_log', JSON.stringify(activityLog));
+  renderLog();
+}
+
+function renderLog() {
+  var el = document.getElementById('activityLog');
+  var cnt = document.getElementById('logCount');
+  if (!activityLog.length) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#4a5568">No activity recorded yet.</div>';
+    cnt.textContent = '0 entries';
+    return;
+  }
+  cnt.textContent = activityLog.length + ' entries';
+  el.innerHTML = activityLog.map(function(e) {
+    return '<div class="log-entry"><div class="log-msg">' + e.msg + '</div><div class="log-time">' + e.ts + '</div></div>';
+  }).join('');
+}
+
+function clearLog() {
+  if (!confirm('Clear all activity log entries?')) return;
+  activityLog = [];
+  localStorage.removeItem('bv_activity_log');
+  renderLog();
+}
+
+renderLog();
+logAction('🔑 Admin panel opened');
+
+
+function openVoterModal(v) {
+  var fields = [
+    ['Voter ID',      '<code style="color:#388bfd">' + v.voter_id + '</code>'],
+    ['Name',          v.name],
+    ['Email',         v.email || '—'],
+    ['Phone',         v.phone || '—'],
+    ['Aadhar',        v.aadhar ? '••••' + v.aadhar.slice(-4) : '—'],
+    ['Date of Birth', v.dob || '—'],
+    ['Age',           v.age || '—'],
+    ['Status',        v.is_blocked ? '🚫 Blocked' : v.has_voted ? '✅ Voted' : '⏳ Pending'],
+    ['Voted For',     v.voted_for || '—'],
+    ['Voted At',      v.voted_at || '—'],
+    ['Registered At', v.created_at || '—'],
+  ];
+  var html = fields.map(function(f) {
+    return '<div class="vrow"><span class="vrow-label">' + f[0] + '</span><span class="vrow-val">' + f[1] + '</span></div>';
+  }).join('');
+  document.getElementById('voterModalBody').innerHTML = html;
+  document.getElementById('voterModal').classList.add('show');
+  logAction('👤 Viewed voter details: ' + v.name + ' (' + v.voter_id + ')');
+}
+
+
+var COLORS = ['#e8b84b','#388bfd','#3dd68c','#f75f67','#39d0d8','#9b59b6'];
+var pieChart = null, barChart = null, resultsInterval = null;
+var prevWinner = null;
+
+function buildPieChart(cands) {
+  var ctx = document.getElementById('adminPieChart').getContext('2d');
+  pieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: cands.map(function(c){ return c.emoji + ' ' + c.name.split(' ').pop(); }),
+      datasets: [{ data: cands.map(function(c){ return c.vote_count; }),
+        backgroundColor: COLORS.map(function(c){ return c + 'bb'; }),
+        borderColor: COLORS, borderWidth: 2, hoverOffset: 8 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '55%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, font: { size: 11 }, boxWidth: 14 }}}}
+  });
+}
+
+function buildBarChart(cands) {
+  var ctx = document.getElementById('adminBarChart').getContext('2d');
+  barChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cands.map(function(c){ return c.emoji + ' ' + c.name.split(' ').pop(); }),
+      datasets: [{ label: 'Votes', data: cands.map(function(c){ return c.vote_count; }),
+        backgroundColor: COLORS.map(function(c){ return c + '33'; }),
+        borderColor: COLORS, borderWidth: 2, borderRadius: 8, borderSkipped: false }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
+      plugins: { legend: { display: false }},
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#8b949e' }},
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.04)' },
+          ticks: { color: '#8b949e', stepSize: 1, callback: function(v){ return Number.isInteger(v) ? v : ''; }}}
+      }
+    }
+  });
+}
+
+function buildStandings(cands, total) {
+  if (!cands || !cands.length) return '<div style="text-align:center;padding:2rem;color:#4a5568">No candidates found.</div>';
+  if (total === 0) return '<div style="text-align:center;padding:2rem;color:#4a5568">No votes cast yet.</div>';
+  return cands.map(function(c, i) {
+    var pct = total > 0 ? Math.round(c.vote_count / total * 100) : 0;
+    var win = i === 0 && c.vote_count > 0;
+    return '<div class="rr' + (win ? ' win' : '') + '">'
+      + '<div class="rr-rank' + (win ? ' gold' : '') + '">' + (win ? '👑' : '#' + (i + 1)) + '</div>'
+      + '<div class="rr-emoji">' + c.emoji + '</div>'
+      + '<div class="rr-info"><div class="rr-name">' + c.name + '</div>'
+      + '<div class="rr-party">' + c.party + '</div>'
+      + '<div class="pw"><div class="pf" style="width:' + pct + '%"></div></div></div>'
+      + '<div class="rr-votes"><div class="rr-count">' + c.vote_count + '</div>'
+      + '<div class="rr-pct">' + pct + '%</div></div></div>';
+  }).join('');
+}
+
+function spawnConfetti() {
+  var banner = document.getElementById('winnerBanner');
+  var colors = ['#e8b84b','#f75f67','#3dd68c','#388bfd','#fff'];
+  for (var i = 0; i < 40; i++) {
+    (function(i) {
+      setTimeout(function() {
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.cssText = 'left:' + Math.random() * 100 + '%;top:0;background:' + colors[Math.floor(Math.random() * colors.length)]
+          + ';animation-duration:' + (1.2 + Math.random() * 1.5) + 's;animation-delay:0s;position:absolute;';
+        banner.appendChild(piece);
+        setTimeout(function(){ piece.remove(); }, 3000);
+      }, i * 60);
+    })(i);
+  }
+}
+
+function showWinnerBanner(winner, electionTitle) {
+  var banner = document.getElementById('winnerBanner');
+  document.getElementById('winnerName').textContent = winner.emoji + ' ' + winner.name;
+  document.getElementById('winnerSub').textContent  = winner.party + ' · ' + winner.vote_count + ' votes · ' + (electionTitle || 'Election');
+  banner.classList.add('show');
+  spawnConfetti();
+}
+
+function refreshResults() {
+  fetch('/api/results')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) return;
+      var cands = data.candidates, total = data.total;
+      document.getElementById('liveTotal').textContent   = total + ' votes cast';
+      document.getElementById('liveTurnout').textContent = '· Turnout: ' + data.turnout + '%';
+      document.getElementById('standingsList').innerHTML = buildStandings(cands, total);
+
+      if (!pieChart) buildPieChart(cands);
+      else { pieChart.data.datasets[0].data = cands.map(function(c){ return c.vote_count; }); pieChart.update('active'); }
+
+      if (!barChart) buildBarChart(cands);
+      else { barChart.data.datasets[0].data = cands.map(function(c){ return c.vote_count; }); barChart.update('active'); }
+
+      // Winner banner — show when election closed and there's a winner
+      var winner = data.winner;
+      if (winner && !data.election.is_open) {
+        if (!prevWinner || prevWinner !== winner.name) {
+          prevWinner = winner.name;
+          showWinnerBanner(winner, data.election ? data.election.title : '');
+          logAction('🏆 Winner detected: ' + winner.name + ' (' + winner.vote_count + ' votes)');
+        }
+      } else {
+        document.getElementById('winnerBanner').classList.remove('show');
+      }
+    })
+    .catch(function(e){ console.error('Live results error:', e); });
+}
+
+
+function adminLoadDistricts(regionId) {
+  var distSel = document.getElementById('adminDistrict');
+  var constSel = document.getElementById('adminConst');
+  distSel.innerHTML  = '<option value="">— Select District —</option>';
+  constSel.innerHTML = '<option value="">— All / General —</option>';
+  constSel.disabled  = true;
+  if (!regionId) { distSel.disabled = true; return; }
+  fetch('/api/districts_by_region?region_id=' + regionId)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      data.forEach(function(d){
+        var o = document.createElement('option'); o.value = d.id; o.textContent = d.name; distSel.appendChild(o);
+      });
+      distSel.disabled = false;
+    });
+}
+
+function adminLoadConstituencies(districtId) {
+  var constSel = document.getElementById('adminConst');
+  constSel.innerHTML = '<option value="">— All / General —</option>';
+  if (!districtId) { constSel.disabled = true; return; }
+  fetch('/api/constituencies_by_district?district_id=' + districtId)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      data.forEach(function(c){
+        var o = document.createElement('option'); o.value = c.id; o.textContent = c.name; constSel.appendChild(o);
+      });
+      constSel.disabled = false;
+    });
+}
+
+function filterGeo(regionId) {
+  document.querySelectorAll('.geo-region-block').forEach(function(b){
+    b.style.display = (!regionId || b.getAttribute('data-region-id') === regionId) ? '' : 'none';
+  });
+}
+
+function filterVoters(val) {
+  val = val.toLowerCase();
+  var rows = document.querySelectorAll('#votersTbody tr');
+  for (var i = 0; i < rows.length; i++)
+    rows[i].style.display = (!val || rows[i].textContent.toLowerCase().indexOf(val) > -1) ? '' : 'none';
+}
+
+function openEditModal(id, name, party, emoji) {
+  document.getElementById('editName').value  = name;
+  document.getElementById('editParty').value = party;
+  document.getElementById('editEmoji').value = emoji;
+  document.getElementById('editForm').action = '/admin/candidate/edit/' + id;
+  document.getElementById('editModal').classList.add('show');
+  logAction('✏️ Opened edit modal for candidate: ' + name);
+}
+
+function confirmRemove(name, votes) {
+  if (votes > 0) { alert('Cannot remove "' + name + '" — they have ' + votes + ' vote(s). Reset votes first.'); return false; }
+  var ok = confirm('Remove candidate "' + name + '"?');
+  if (ok) logAction('🗑️ Removed candidate: ' + name);
+  return ok;
+}
+
+function openEmailModal(eid, title, votes) {
+  document.getElementById('emailModalTitle').textContent = '📧 Email Results: ' + title;
+  document.getElementById('emailModalBody').textContent  = 'Send final results (' + votes + ' votes) to all registered voters who have email addresses. Are you sure?';
+  document.getElementById('emailForm').action = '/admin/election/' + eid + '/email-results';
+  document.getElementById('emailModal').classList.add('show');
+  logAction('📧 Opened email results modal for: ' + title);
+}
+
+// Close modals on overlay click
+document.getElementById('voterModal').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('show'); });
+document.getElementById('emailModal').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('show'); });
+document.getElementById('editModal').addEventListener('click',  function(e){ if(e.target===this) this.classList.remove('show'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vote | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;-webkit-font-smoothing:antialiased}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,139,253,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,.04) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(56,139,253,.08) 0%,transparent 60%)}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(56,139,253,.10)}
+    .nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none}
+    .nav-brand .blue{color:#388bfd}
+    .nav-links{display:flex;align-items:center;gap:.3rem}
+    .nav-links a{padding:.4rem .95rem;border-radius:8px;text-decoration:none;color:#8b949e;font-size:.88rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover{color:#cdd9e5;background:rgba(255,255,255,.05)}
+    .nav-links .active{color:#388bfd;background:rgba(56,139,253,.10);border:1px solid rgba(56,139,253,.18)}
+    .nav-links .nav-logout{background:rgba(247,95,103,.12);color:#f75f67;border:1px solid rgba(247,95,103,.22)}
+    .page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:2.5rem 2rem 5rem}
+    .flash{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.1rem;border-radius:10px;font-size:.88rem;font-weight:500;margin-bottom:1rem}
+    .flash-success{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);color:#7ee8b5}
+    .flash-danger{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.25);color:#ffaaad}
+    .flash-warning{background:rgba(240,136,62,.08);border:1px solid rgba(240,136,62,.25);color:#ffc08a}
+    .flash-info{background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);color:#93bbfd}
+    .election-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+    .etab{padding:.55rem 1.1rem;border-radius:10px;font-size:.85rem;font-weight:600;text-decoration:none;border:1px solid rgba(56,139,253,.15);color:#8b949e;transition:all .2s;display:flex;align-items:center;gap:.4rem}
+    .etab:hover{color:#cdd9e5;border-color:rgba(56,139,253,.3)}
+    .etab.active{background:rgba(56,139,253,.12);color:#388bfd;border-color:rgba(56,139,253,.3)}
+    .etab.voted{background:rgba(61,214,140,.08);color:#3dd68c;border-color:rgba(61,214,140,.22)}
+    .status-card{border-radius:16px;padding:1.4rem 1.8rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.2rem}
+    .sc-voted{background:rgba(61,214,140,.07);border:1px solid rgba(61,214,140,.22)}
+    .sc-open{background:rgba(56,139,253,.07);border:1px solid rgba(56,139,253,.20)}
+    .sc-closed{background:rgba(247,95,103,.07);border:1px solid rgba(247,95,103,.20)}
+    .sc-icon{font-size:2.5rem;flex-shrink:0}
+    .sc-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:.25rem}
+    .sc-sub{color:#8b949e;font-size:.85rem}
+    .const-picker{background:rgba(56,139,253,.05);border:1px solid rgba(56,139,253,.12);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;gap:.8rem;align-items:flex-end;flex-wrap:wrap}
+    .cp-lbl{display:block;font-size:.72rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+    .cp-sel{padding:.6rem 1rem;background:rgba(4,9,15,.7);border:1.5px solid rgba(56,139,253,.12);border-radius:9px;color:#cdd9e5;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s;appearance:none;cursor:pointer;min-width:150px}
+    .cp-sel:focus{border-color:#388bfd;box-shadow:0 0 0 3px rgba(56,139,253,.10)}
+    .cp-sel:disabled{opacity:.4;cursor:not-allowed}
+    .cp-sel option{background:#0d1a2a}
+    .cand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
+    .cand-card{background:rgba(13,24,42,.8);border:2px solid rgba(56,139,253,.08);border-radius:16px;padding:1.4rem;cursor:pointer;transition:all .25s;position:relative;text-align:center}
+    .cand-card:hover{border-color:rgba(56,139,253,.3);transform:translateY(-3px);box-shadow:0 10px 30px rgba(56,139,253,.12)}
+    .cand-card.selected{border-color:#388bfd;background:rgba(56,139,253,.10);box-shadow:0 0 0 3px rgba(56,139,253,.15)}
+    .cand-card input[type="radio"]{position:absolute;opacity:0;width:0;height:0}
+    .cand-photo{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto .8rem;display:block;border:3px solid rgba(56,139,253,.2)}
+    .cand-emoji{font-size:3rem;margin-bottom:.6rem;display:block}
+    .cand-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.25rem}
+    .cand-party{color:#8b949e;font-size:.8rem}
+    .selected-check{position:absolute;top:.7rem;right:.7rem;background:#388bfd;color:#fff;border-radius:50%;width:24px;height:24px;display:none;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+    .cand-card.selected .selected-check{display:flex}
+    .btn-vote{width:100%;padding:1rem;background:linear-gradient(135deg,#1a3a6a,#388bfd);color:#fff;border:none;border-radius:14px;font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 4px 24px rgba(56,139,253,.25)}
+    .btn-vote:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(56,139,253,.4)}
+    .btn-vote:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(4,9,15,.88);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.show{display:flex}
+    .modal{background:#0d1a2a;border:1px solid rgba(56,139,253,.25);border-radius:20px;padding:2.4rem;max-width:420px;width:100%;text-align:center}
+    .modal-icon{font-size:3rem;margin-bottom:.8rem;display:block}
+    .modal h3{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.5rem}
+    .modal p{color:#8b949e;font-size:.88rem;margin-bottom:1.4rem;line-height:1.6}
+    .modal-cand{display:flex;align-items:center;gap:.8rem;background:rgba(56,139,253,.07);border:1px solid rgba(56,139,253,.15);border-radius:12px;padding:1rem;margin-bottom:1.4rem;text-align:left}
+    .modal-cand-emoji{font-size:2rem}
+    .modal-cand-name{font-weight:700;color:#fff}
+    .modal-cand-party{color:#8b949e;font-size:.8rem}
+    .modal-btns{display:flex;gap:.7rem}
+    .btn-confirm{flex:1;padding:.8rem;background:linear-gradient(135deg,#1a3a6a,#388bfd);color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.95rem}
+    .btn-cancel{flex:1;padding:.8rem;background:transparent;color:#8b949e;border:1.5px solid rgba(255,255,255,.1);border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:.95rem}
+    .page-tag{font-size:.75rem;font-weight:700;color:#388bfd;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.3rem}
+    .page-title{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:1.2rem}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.8rem;color:#2d3748;font-size:.8rem;border-top:1px solid rgba(56,139,253,.08)}
+    @media(max-width:600px){.cand-grid{grid-template-columns:1fr 1fr}.page{padding:1.5rem 1rem 3rem}.const-picker{flex-direction:column}.cp-sel{min-width:100%}}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div></div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <span class="modal-icon">🗳️</span>
+    <h3>Confirm Your Vote</h3>
+    <p>You can only vote <strong style="color:#fff">once per election</strong>. This cannot be changed.</p>
+    <div class="modal-cand" id="modalCandInfo"></div>
+    <div class="modal-btns">
+      <button class="btn-confirm" id="modalConfirmBtn">✅ Confirm Vote</button>
+      <button class="btn-cancel" onclick="document.getElementById('confirmModal').classList.remove('show')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">🗳️ Block<span class="blue">Vote</span></a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/vote" class="active">Vote</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout" class="nav-logout">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-tag">🗳️ Voting Booth</div>
+  <div class="page-title">Cast Your Vote</div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        {% if category=='success' %}✅{% elif category=='danger' %}❌{% elif category=='warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if elections %}
+  <div class="election-tabs">
+    {% for e in elections %}
+    <a href="/vote?election_id={{ e['id'] }}"
+       class="etab {% if e['id'] == sel_eid %}active{% elif e['id'] in voted_eids %}voted{% endif %}">
+      {% if e['id'] in voted_eids %}✅{% elif e['is_open'] %}🔓{% else %}🔒{% endif %}
+      {{ e['title'] }}
+      {% if e.get('election_type') and e['election_type'] != 'General' %}
+      <span style="font-size:.7rem;opacity:.7">({{ e['election_type'][:3] }})</span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not elections %}
+  <div class="status-card sc-closed">
+    <div class="sc-icon">🔒</div>
+    <div>
+      <div class="sc-title">No Elections Open</div>
+      <div class="sc-sub">There are no open elections at this time. Check back later.</div>
+    </div>
+  </div>
+
+  {% elif already_voted %}
+  <div class="status-card sc-voted">
+    <div class="sc-icon">✅</div>
+    <div>
+      <div class="sc-title">Vote Recorded — {{ election['title'] }}</div>
+      <div class="sc-sub">
+        Your vote has been securely recorded on the blockchain.
+        {% set ns = namespace(pending_id=none, pending_title=none) %}
+        {% for e in elections %}
+          {% if ns.pending_id is none and e['id'] not in voted_eids %}
+            {% set ns.pending_id = e['id'] %}
+            {% set ns.pending_title = e['title'] %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.pending_id %}
+        &nbsp;·&nbsp;<a href="/vote?election_id={{ ns.pending_id }}" style="color:#e8b84b;font-weight:600">Vote in {{ ns.pending_title }} →</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% elif election and not election['is_open'] %}
+  <div class="status-card sc-closed">
+    <div class="sc-icon">🔒</div>
+    <div>
+      <div class="sc-title">{{ election['title'] }} — Voting Closed</div>
+      <div class="sc-sub">This election has been closed by the administrator.</div>
+    </div>
+  </div>
+
+  {% elif election and candidates %}
+  <div class="status-card sc-open">
+    <div class="sc-icon">🔓</div>
+    <div>
+      <div class="sc-title">{{ election['title'] }} — Voting Open</div>
+      <div class="sc-sub">
+        {% if election.get('election_type') and election['election_type'] != 'General' %}
+        <span style="color:#e8b84b;font-weight:600">{{ election['election_type'] }}</span>&nbsp;·&nbsp;
+        {% endif %}
+        {% if election.get('constituency_name') %}
+        📍 {{ election['constituency_name'] }}{% if election.get('district_name') %}, {{ election['district_name'] }}{% endif %}&nbsp;·&nbsp;
+        {% endif %}
+        Select your candidate and confirm. You can vote only once.
+      </div>
+    </div>
+  </div>
+
+  <!-- Constituency Filter -->
+  <div class="const-picker">
+    <div style="flex-shrink:0;align-self:center;font-size:.82rem;color:#8b949e">📍 <strong style="color:#cdd9e5">Filter by Constituency</strong></div>
+    <div>
+      <span class="cp-lbl">Region</span>
+      <select id="vRegion" class="cp-sel" onchange="vLoadDistricts(this.value)">
+        <option value="">All Regions</option>
+      </select>
+    </div>
+    <div>
+      <span class="cp-lbl">District</span>
+      <select id="vDistrict" class="cp-sel" onchange="vLoadConstituencies(this.value)" disabled>
+        <option value="">All Districts</option>
+      </select>
+    </div>
+    <div>
+      <span class="cp-lbl">Constituency</span>
+      <select id="vConst" class="cp-sel" onchange="filterCandidates(this.value)" disabled>
+        <option value="">All Constituencies</option>
+      </select>
+    </div>
+    <div style="align-self:flex-end">
+      <button type="button" onclick="clearConstFilter()" style="padding:.6rem .9rem;background:transparent;border:1px solid rgba(255,255,255,.1);color:#8b949e;border-radius:8px;font-size:.8rem;cursor:pointer">✕ Clear</button>
+    </div>
+  </div>
+
+  <form method="POST" action="/vote?election_id={{ election['id'] }}" id="voteForm">
+    <div class="cand-grid" id="candGrid">
+      {% for c in candidates %}
+      <label class="cand-card" id="card_{{ c['id'] }}"
+             data-name="{{ c['name'] }}"
+             data-party="{{ c['party'] }}"
+             data-emoji="{{ c['emoji'] }}"
+             data-cid="{{ c['constituency_id'] if c['constituency_id'] else '' }}">
+        <input type="radio" name="candidate" value="{{ c['id'] }}" onchange="selectCandidate(this)"/>
+        <div class="selected-check">✓</div>
+        {% if c['photo'] %}
+          <img src="/static/uploads/candidates/{{ c['photo'] }}" alt="{{ c['name'] }}" class="cand-photo"/>
+        {% else %}
+          <span class="cand-emoji">{{ c['emoji'] }}</span>
+        {% endif %}
+        <div class="cand-name">{{ c['name'] }}</div>
+        <div class="cand-party">{{ c['party'] }}</div>
+      </label>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="candidate" id="selectedCandidateInput" value=""/>
+    <button type="button" class="btn-vote" id="voteBtn" disabled onclick="showConfirm()">
+      🗳️ Vote Now
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<footer class="site-footer">&copy; BlockVote — Batch 87</footer>
+
+<script>
+var selectedId = null, selectedName = '', selectedParty = '', selectedEmoji = '';
+
+function selectCandidate(radio) {
+  document.querySelectorAll('.cand-card').forEach(function(c){ c.classList.remove('selected'); });
+  var card = radio.closest('.cand-card');
+  card.classList.add('selected');
+  selectedId    = radio.value;
+  selectedName  = card.getAttribute('data-name');
+  selectedParty = card.getAttribute('data-party');
+  selectedEmoji = card.getAttribute('data-emoji');
+  document.getElementById('voteBtn').disabled = false;
+}
+
+function showConfirm() {
+  if (!selectedId) return;
+  document.getElementById('modalCandInfo').innerHTML =
+    '<div class="modal-cand-emoji">' + selectedEmoji + '</div>' +
+    '<div><div class="modal-cand-name">' + selectedName + '</div>' +
+    '<div class="modal-cand-party">' + selectedParty + '</div></div>';
+  document.getElementById('confirmModal').classList.add('show');
+  document.getElementById('modalConfirmBtn').onclick = function() {
+    document.getElementById('selectedCandidateInput').value = selectedId;
+    document.querySelectorAll('.cand-card input[type=radio]').forEach(function(r){ r.disabled = true; });
+    document.getElementById('voteForm').submit();
+  };
+}
+
+/* ── Constituency picker ── */
+(function initPicker() {
+  var rSel = document.getElementById('vRegion');
+  if (!rSel) return;
+  fetch('/api/geography')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      window._geoDist  = data.districts     || [];
+      window._geoConst = data.constituencies || [];
+      (data.regions || []).forEach(function(r){
+        var o = document.createElement('option');
+        o.value = r.id; o.textContent = r.name;
+        rSel.appendChild(o);
+      });
+    })
+    .catch(function(){/* API not available, picker stays empty */});
+})();
+
+function vLoadDistricts(regionId) {
+  var dSel = document.getElementById('vDistrict');
+  var cSel = document.getElementById('vConst');
+  dSel.innerHTML = '<option value="">All Districts</option>';
+  cSel.innerHTML = '<option value="">All Constituencies</option>';
+  cSel.disabled  = true;
+  filterCandidates('');
+  if (!regionId) { dSel.disabled = true; return; }
+  (window._geoDist || [])
+    .filter(function(d){ return String(d.region_id) === String(regionId); })
+    .forEach(function(d){
+      var o = document.createElement('option');
+      o.value = d.id; o.textContent = d.name;
+      dSel.appendChild(o);
+    });
+  dSel.disabled = false;
+}
+
+function vLoadConstituencies(distId) {
+  var cSel = document.getElementById('vConst');
+  cSel.innerHTML = '<option value="">All Constituencies</option>';
+  filterCandidates('');
+  if (!distId) { cSel.disabled = true; return; }
+  (window._geoConst || [])
+    .filter(function(c){ return String(c.district_id) === String(distId); })
+    .forEach(function(c){
+      var o = document.createElement('option');
+      o.value = c.id; o.textContent = c.name;
+      cSel.appendChild(o);
+    });
+  cSel.disabled = false;
+}
+
+function filterCandidates(constId) {
+  document.querySelectorAll('.cand-card').forEach(function(card){
+    var cid = card.getAttribute('data-cid');
+    var show = !constId || !cid || String(cid) === String(constId);
+    card.style.display = show ? '' : 'none';
+  });
+  if (selectedId) {
+    var sel = document.getElementById('card_' + selectedId);
+    if (sel && sel.style.display === 'none') {
+      sel.classList.remove('selected');
+      selectedId = null;
+      document.getElementById('voteBtn').disabled = true;
+    }
+  }
+}
+
+function clearConstFilter() {
+  document.getElementById('vRegion').value = '';
+  var dSel = document.getElementById('vDistrict');
+  var cSel = document.getElementById('vConst');
+  dSel.innerHTML = '<option value="">All Districts</option>';
+  dSel.disabled  = true;
+  cSel.innerHTML = '<option value="">All Constituencies</option>';
+  cSel.disabled  = true;
+  filterCandidates('');
+}
+</script>
+</body>
+</html>

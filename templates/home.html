@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BlockVote — Live Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;-webkit-font-smoothing:antialiased}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,139,253,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,.03) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(56,139,253,.08) 0%,transparent 60%);animation:g1 16s ease-in-out infinite alternate}
+    .bg-glow2{position:absolute;bottom:-20%;right:-10%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(232,184,75,.06) 0%,transparent 60%);animation:g2 20s ease-in-out infinite alternate}
+    @keyframes g1{from{transform:translate(0,0)}to{transform:translate(8%,6%)}}
+    @keyframes g2{from{transform:translate(0,0)}to{transform:translate(-6%,-5%)}}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(56,139,253,.10)}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.03em}
+    .nav-brand .blue{color:#388bfd}
+    .nav-links{display:flex;align-items:center;gap:.3rem}
+    .nav-links a{padding:.4rem .95rem;border-radius:8px;text-decoration:none;color:#8b949e;font-size:.88rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover{color:#cdd9e5;background:rgba(255,255,255,.05)}
+    .nav-links .active{color:#388bfd;background:rgba(56,139,253,.10);border:1px solid rgba(56,139,253,.18)}
+    .btn-reg{background:#e8b84b!important;color:#0a0600!important;font-weight:700!important}
+    /* Winner Banner */
+    .winner-banner{background:linear-gradient(135deg,rgba(232,184,75,.14),rgba(232,184,75,.06));border:2px solid rgba(232,184,75,.4);border-radius:20px;padding:2rem 2.5rem;margin:1.5rem auto;max-width:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.7rem;animation:winnerPop .8s cubic-bezier(.16,1,.3,1) both}
+    @keyframes winnerPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+    .wb-trophy{font-size:3rem;animation:swing 2s ease-in-out infinite alternate}
+    @keyframes swing{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
+    .wb-label{font-size:.72rem;font-weight:700;color:#e8b84b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem}
+    .wb-name{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:#fff}
+    .wb-party{color:#8b949e;font-size:.88rem;margin-top:.15rem}
+    .wb-votes{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#e8b84b;line-height:1;text-align:right}
+    .wb-vl{color:#8b949e;font-size:.72rem;text-align:right}
+    .wb-confetti{font-size:2rem;animation:bounce 1s ease-in-out infinite alternate;margin-left:auto}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+    /* Countdown */
+    .countdown-banner{background:rgba(56,139,253,.07);border:1px solid rgba(56,139,253,.20);border-radius:14px;padding:1rem 1.5rem;margin:0 2rem 1rem;max-width:1100px;margin-left:auto;margin-right:auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem}
+    .cd-label{color:#8b949e;font-size:.85rem}
+    .cd-time{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#388bfd;font-variant-numeric:tabular-nums}
+    .cd-expired{color:#f75f67}
+    /* Hero */
+    .hero{position:relative;z-index:1;text-align:center;padding:4rem 2rem 2rem}
+    .live-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.22);color:#ffaaad;padding:.32rem .9rem;border-radius:99px;font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-bottom:1.2rem}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:#f75f67;animation:pulse 1.4s ease-in-out infinite}
+    .hero h1{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;color:#fff;letter-spacing:-.05em;line-height:1.1;margin-bottom:.7rem}
+    .hero h1 .grad{background:linear-gradient(135deg,#388bfd,#39d0d8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+    .hero-sub{color:#8b949e;font-size:1rem;line-height:1.6;max-width:520px;margin:0 auto 2rem}
+    .hero-actions{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+    .btn-primary{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 2rem;background:#e8b84b;color:#0a0600;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;text-decoration:none;transition:all .25s}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(232,184,75,.4)}
+    .btn-outline{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 2rem;background:transparent;color:#388bfd;border:1.5px solid rgba(56,139,253,.28);border-radius:12px;font-size:.95rem;font-weight:600;text-decoration:none;transition:all .2s}
+    .btn-outline:hover{background:rgba(56,139,253,.08)}
+    /* Page content */
+    .page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 2rem 5rem}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:rgba(13,24,42,.75);border:1px solid rgba(56,139,253,.08);border-radius:16px;padding:1.3rem 1.5rem;position:relative;overflow:hidden;transition:transform .2s}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+    .sc-blue::before{background:linear-gradient(90deg,#1a3a6a,#388bfd)}.sc-green::before{background:linear-gradient(90deg,#0d3320,#3dd68c)}.sc-gold::before{background:linear-gradient(90deg,#7a5c10,#e8b84b)}.sc-cyan::before{background:linear-gradient(90deg,#0a2a30,#39d0d8)}
+    .stat-icon{font-size:1.5rem;margin-bottom:.5rem}
+    .stat-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1;margin-bottom:.2rem}
+    .sc-blue .stat-num{color:#388bfd}.sc-green .stat-num{color:#3dd68c}.sc-gold .stat-num{color:#e8b84b}.sc-cyan .stat-num{color:#39d0d8}
+    .stat-label{color:#8b949e;font-size:.76rem;font-weight:500}
+    .status-banner{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-radius:14px;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap}
+    .sb-open{background:rgba(61,214,140,.07);border:1px solid rgba(61,214,140,.22)}
+    .sb-closed{background:rgba(247,95,103,.07);border:1px solid rgba(247,95,103,.22)}
+    .sb-left{display:flex;align-items:center;gap:.9rem}
+    .sb-title{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:.95rem}
+    .sb-sub{color:#8b949e;font-size:.8rem;margin-top:.1rem}
+    .ri{display:flex;align-items:center;gap:.4rem;color:#388bfd;font-size:.75rem;font-weight:600}
+    .ri-dot{width:6px;height:6px;border-radius:50%;background:#3dd68c;animation:pulse 1.4s ease-in-out infinite}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+    .section-card{background:rgba(13,24,42,.75);border:1px solid rgba(56,139,253,.08);border-radius:18px;padding:1.8rem}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
+    .section-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:.5rem}
+    .section-sub{color:#4a5568;font-size:.78rem}
+    .chart-container{position:relative;height:280px}
+    .result-row{display:flex;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:1px solid rgba(56,139,253,.06)}
+    .result-row:last-child{border-bottom:none}
+    .rr-rank{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#2d3748;width:28px;flex-shrink:0;text-align:center}
+    .rr-rank.gold{color:#e8b84b}
+    .rr-emoji{font-size:1.8rem;flex-shrink:0}
+    .rr-info{flex:1;min-width:0}
+    .rr-name{font-weight:700;color:#fff;font-size:.9rem}
+    .rr-party{color:#8b949e;font-size:.75rem;margin-bottom:.3rem}
+    .prog-bar{background:rgba(255,255,255,.06);border-radius:99px;height:6px;overflow:hidden}
+    .prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#1a3a6a,#388bfd);transition:width 1s cubic-bezier(.16,1,.3,1)}
+    .winner .prog-fill{background:linear-gradient(90deg,#7a5c10,#e8b84b)}
+    .rr-count{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#388bfd;line-height:1}
+    .winner .rr-count{color:#e8b84b}
+    .rr-pct{color:#8b949e;font-size:.72rem;text-align:right}
+    /* Share buttons */
+    .share-section{margin-top:1.5rem}
+    .share-title{font-size:.8rem;color:#4a5568;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.7rem;text-align:center}
+    .share-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+    .share-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;cursor:pointer;border:none}
+    .share-wa{background:rgba(37,211,102,.12);color:#25d366;border:1px solid rgba(37,211,102,.25)}
+    .share-wa:hover{background:rgba(37,211,102,.22)}
+    .share-tw{background:rgba(29,161,242,.12);color:#1da1f2;border:1px solid rgba(29,161,242,.25)}
+    .share-tw:hover{background:rgba(29,161,242,.22)}
+    .share-cp{background:rgba(255,255,255,.06);color:#8b949e;border:1px solid rgba(255,255,255,.10)}
+    .share-cp:hover{background:rgba(255,255,255,.12);color:#cdd9e5}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.8rem 2rem;color:#2d3748;font-size:.8rem;border-top:1px solid rgba(56,139,253,.08)}
+    .lang-btn{background:none;border:none;cursor:pointer;padding:.25rem .35rem;border-radius:6px;font-size:.78rem;color:#8b949e;transition:all .2s;font-family:inherit}
+    .lang-btn:hover{background:rgba(255,255,255,.08)}
+    .lang-btn.active{background:rgba(56,139,253,.18);color:#388bfd}
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}.winner-banner{margin:1rem}.countdown-banner{margin:0 1rem .8rem}}
+    @media(max-width:600px){.nav-inner{padding:0 1rem}.page{padding:0 1rem 3rem}.hero h1{font-size:2rem}.stats-row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div><div class="bg-glow2"></div></div>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">🗳️ Block<span class="blue">Vote</span></a>
+    <div class="nav-links">
+      <a href="/" class="active">Home</a>
+      {% if session.voter_id %}
+        <a href="/vote">Vote</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/login">Login</a>
+        <a href="/register" class="btn-reg">Register</a>
+      {% endif %}
+      <a href="/admin/login" style="color:#e8b84b;font-size:.78rem;margin-left:.5rem">⚙️ Admin</a>
+      <!-- Language switcher -->
+      <div style="display:flex;align-items:center;gap:.2rem;margin-left:.5rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:.2rem .3rem">
+        <button onclick="setLang('en')" id="btn-en" class="lang-btn active" title="English">🇬🇧</button>
+        <button onclick="setLang('te')" id="btn-te" class="lang-btn" title="Telugu">🇮🇳 తె</button>
+        <button onclick="setLang('hi')" id="btn-hi" class="lang-btn" title="Hindi">🇮🇳 हि</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Winner Banner (shows when election closed + winner exists) -->
+{% if winner %}
+<div class="winner-banner">
+  <div class="wb-trophy">🏆</div>
+  <div class="wb-label">🎉 Election Winner Declared</div>
+  <div class="wb-name">{{ winner['emoji'] }} {{ winner['name'] }}</div>
+  <div class="wb-party">{{ winner['party'] }}</div>
+  <div style="display:flex;align-items:center;gap:.6rem;justify-content:center;margin-top:.3rem">
+    <div class="wb-votes">{{ winner['vote_count'] }}</div>
+    <div style="color:#8b949e;font-size:.82rem">votes won</div>
+    <div class="wb-confetti">🎊</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Countdown Timer (shows when end_time is set and election is open) -->
+{% if election and election['is_open'] and election.get('end_time') %}
+<div class="countdown-banner" id="countdownBanner">
+  <div>
+    <div class="cd-label">⏳ Voting ends in</div>
+    <div class="cd-time" id="cdTime">Calculating…</div>
+  </div>
+  <div style="color:#8b949e;font-size:.8rem">Until: {{ election['end_time'] }}</div>
+</div>
+{% endif %}
+
+<div class="hero">
+  <div class="live-badge"><span class="live-dot"></span>&nbsp;<span id="heroStatus">Loading…</span></div>
+  <h1 id="electionTitle">{{ election.title if election else 'General Election' }}<br><span class="grad" data-i18n="liveResults">Live Results</span></h1>
+  <p class="hero-sub" data-i18n="heroSub">Real-time results secured by blockchain. Updates every 5 seconds.</p>
+  <div class="hero-actions">
+    {% if session.voter_id %}
+      <a href="/vote" class="btn-primary">🗳️ Cast Your Vote</a>
+      <a href="/dashboard" class="btn-outline">📊 My Dashboard</a>
+    {% else %}
+      <a href="/register" class="btn-primary">📝 Register to Vote</a>
+      <a href="/login" class="btn-outline">🔐 Login</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="page">
+  <div class="stats-row">
+    <div class="stat-card sc-blue"><div class="stat-icon">👥</div><div class="stat-num" id="sVoters">—</div><div class="stat-label" data-i18n="registeredVoters">Registered Voters</div></div>
+    <div class="stat-card sc-green"><div class="stat-icon">✅</div><div class="stat-num" id="sVoted">—</div><div class="stat-label" data-i18n="votesCast">Votes Cast</div></div>
+    <div class="stat-card sc-gold"><div class="stat-icon">📊</div><div class="stat-num" id="sTurnout">—</div><div class="stat-label" data-i18n="voterTurnout">Voter Turnout</div></div>
+    <div class="stat-card sc-cyan"><div class="stat-icon">🗳️</div><div class="stat-num" id="sTotal">—</div><div class="stat-label" data-i18n="totalVotes">Total Votes</div></div>
+  </div>
+
+  <div class="status-banner sb-open" id="statusBanner">
+    <div class="sb-left">
+      <div style="width:10px;height:10px;border-radius:50%;background:#3dd68c;animation:pulse 1.4s ease-in-out infinite;flex-shrink:0" id="sbDot"></div>
+      <div><div class="sb-title" id="sbTitle">Loading…</div><div class="sb-sub" id="sbSub"></div></div>
+    </div>
+    <div class="ri"><span class="ri-dot"></span>&nbsp;Auto-updating every 5s</div>
+  </div>
+
+  <div class="two-col">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-title">📊 Vote Distribution</div>
+        <div class="section-sub" id="chartSub">Loading…</div>
+      </div>
+      <div class="chart-container"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-title">🏆 Live Standings</div>
+        <div class="ri"><span class="ri-dot"></span>&nbsp;Live</div>
+      </div>
+      <div id="resultsList"><div style="text-align:center;padding:2rem;color:#4a5568">Loading…</div></div>
+
+      <!-- Share Buttons -->
+      <div class="share-section">
+        <div class="share-title">Share Results</div>
+        <div class="share-btns">
+          <a href="#" id="shareWA" class="share-btn share-wa" target="_blank">📱 WhatsApp</a>
+          <a href="#" id="shareTW" class="share-btn share-tw" target="_blank">🐦 Twitter</a>
+          <button onclick="copyLink()" class="share-btn share-cp" id="copyBtn">🔗 Copy Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">&copy; BlockVote &mdash; Blockchain-Lite Voting System &mdash; Batch 87</footer>
+
+<script>
+var COLORS = ['#e8b84b','#388bfd','#3dd68c','#f75f67','#39d0d8'];
+var barChart = null, nameOrder = [];
+
+function buildChart(cands) {
+  nameOrder = cands.map(function(c){return c.name;});
+  var ctx = document.getElementById('barChart').getContext('2d');
+  barChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:cands.map(function(c){return c.emoji+' '+c.name.split(' ').pop();}),
+      datasets:[{label:'Votes',data:cands.map(function(c){return c.vote_count;}),
+        backgroundColor:COLORS.map(function(c){return c+'33';}),
+        borderColor:COLORS,borderWidth:2,borderRadius:8,borderSkipped:false}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(13,24,42,0.95)',
+        borderColor:'rgba(56,139,253,0.25)',borderWidth:1,titleColor:'#fff',bodyColor:'#cdd9e5',padding:12,
+        callbacks:{
+          title:function(i){return cands[i[0].dataIndex].name;},
+          label:function(i){var t=i.dataset.data.reduce(function(a,b){return a+b;},0);var p=t>0?Math.round(i.raw/t*100):0;return ' '+i.raw+' votes ('+p+'%)';}
+        }
+      }},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8b949e'},border:{color:'rgba(255,255,255,0.06)'}},
+        y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8b949e',stepSize:1,callback:function(v){return Number.isInteger(v)?v:''}},border:{color:'rgba(255,255,255,0.06)'}}
+      }
+    }
+  });
+}
+
+function updateChart(cands) {
+  if (!barChart) return;
+  barChart.data.datasets[0].data = nameOrder.map(function(n){
+    var m=cands.filter(function(c){return c.name===n;})[0];
+    return m?m.vote_count:0;
+  });
+  barChart.update('active');
+}
+
+function buildList(cands, total) {
+  if (!cands||!cands.length) return '<div style="text-align:center;padding:2rem;color:#4a5568">No votes yet</div>';
+  var html='';
+  for(var i=0;i<cands.length;i++){
+    var c=cands[i],pct=total>0?Math.round(c.vote_count/total*100):0,win=i===0&&c.vote_count>0;
+    html+='<div class="result-row '+(win?'winner':'')+'">'+
+      '<div class="rr-rank '+(win?'gold':'')+'">'+( win?'👑':'#'+(i+1))+'</div>'+
+      '<div class="rr-emoji">'+c.emoji+'</div>'+
+      '<div class="rr-info"><div class="rr-name">'+c.name+'</div><div class="rr-party">'+c.party+'</div>'+
+      '<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div></div>'+
+      '<div style="text-align:right;flex-shrink:0"><div class="rr-count">'+c.vote_count+'</div><div class="rr-pct">'+pct+'%</div></div></div>';
+  }
+  return html;
+}
+
+function updateShareLinks(data) {
+  var url = window.location.origin;
+  var winner = data.winner;
+  var text = winner
+    ? '🏆 Election Result: '+winner.name+' ('+winner.party+') won with '+winner.vote_count+' votes! View live results: '+url
+    : '🗳️ Live Election Results — '+data.total+' votes cast so far. View at: '+url;
+  document.getElementById('shareWA').href = 'https://wa.me/?text=' + encodeURIComponent(text);
+  document.getElementById('shareTW').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(function(){
+    var btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(function(){ btn.textContent = '🔗 Copy Link'; }, 2000);
+  });
+}
+
+function loadResults() {
+  fetch('/api/results')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var cands=data.candidates, total=data.total, isOpen=data.election&&data.election.is_open;
+      document.getElementById('sVoters').textContent  = data.total_voters;
+      document.getElementById('sVoted').textContent   = data.voted_count;
+      document.getElementById('sTurnout').textContent = data.turnout+'%';
+      document.getElementById('sTotal').textContent   = total;
+      document.getElementById('chartSub').textContent = total+' votes total';
+      document.getElementById('heroStatus').textContent = isOpen?'Live Voting In Progress':'Election Closed';
+      var banner=document.getElementById('statusBanner');
+      banner.className='status-banner '+(isOpen?'sb-open':'sb-closed');
+      var dot=document.getElementById('sbDot');
+      dot.style.background=isOpen?'#3dd68c':'#f75f67';
+      dot.style.animation=isOpen?'pulse 1.4s ease-in-out infinite':'none';
+      document.getElementById('sbTitle').textContent=isOpen?'🔓 Voting is Open':'🔒 Voting is Closed';
+      document.getElementById('sbSub').textContent=isOpen?'Eligible voters can cast ballots now':'Election closed by administrator';
+      if(!barChart){buildChart(cands);}else{updateChart(cands);}
+      document.getElementById('resultsList').innerHTML=buildList(cands,total);
+      updateShareLinks(data);
+    }).catch(function(){});
+}
+
+loadResults();
+
+/* Countdown Timer */
+{% if election and election['is_open'] and election.get('end_time') %}
+(function(){
+  var endTime = new Date('{{ election["end_time"] }}').getTime();
+  var cdEl = document.getElementById('cdTime');
+  function updateCountdown(){
+    var now = Date.now();
+    var diff = endTime - now;
+    if(diff <= 0){
+      cdEl.textContent='Voting has ended';
+      cdEl.className='cd-time cd-expired';
+      clearInterval(cdInt);
+      return;
+    }
+    var d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    var parts=[];
+    if(d>0)parts.push(d+'d');
+    if(h>0||d>0)parts.push(String(h).padStart(2,'0')+'h');
+    parts.push(String(m).padStart(2,'0')+'m');
+    parts.push(String(s).padStart(2,'0')+'s');
+    cdEl.textContent=parts.join(' ');
+  }
+  updateCountdown();
+  var cdInt=setInterval(updateCountdown,1000);
+})();
+{% endif %}
+</script>
+</body>
+</html>

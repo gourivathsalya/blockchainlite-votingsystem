@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #04090f;
+      color: #cdd9e5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(56,139,253,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,139,253,0.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    .bg-glow1 {
+      position: absolute;
+      top: -30%;
+      left: -15%;
+      width: 70%;
+      height: 70%;
+      background: radial-gradient(ellipse, rgba(56,139,253,0.10) 0%, transparent 60%);
+      animation: drift1 16s ease-in-out infinite alternate;
+    }
+
+    .bg-glow2 {
+      position: absolute;
+      bottom: -20%;
+      right: -10%;
+      width: 55%;
+      height: 55%;
+      background: radial-gradient(ellipse, rgba(57,208,216,0.07) 0%, transparent 60%);
+      animation: drift2 20s ease-in-out infinite alternate;
+    }
+
+    .bg-glow3 {
+      position: absolute;
+      top: 40%;
+      right: 20%;
+      width: 30%;
+      height: 30%;
+      background: radial-gradient(ellipse, rgba(232,184,75,0.05) 0%, transparent 60%);
+      animation: drift3 24s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift1 { from{transform:translate(0,0)} to{transform:translate(8%,6%)} }
+    @keyframes drift2 { from{transform:translate(0,0)} to{transform:translate(-6%,-5%)} }
+    @keyframes drift3 { from{transform:translate(0,0)} to{transform:translate(-4%,8%)} }
+
+    
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(4,9,15,0.82);
+      backdrop-filter: blur(28px);
+      border-bottom: 1px solid rgba(56,139,253,0.12);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.03em;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .nav-brand .blue { color: #388bfd; }
+    .nav-brand .gold { color: #e8b84b; }
+
+    .nav-links { display:flex; align-items:center; gap:.3rem; }
+
+    .nav-links a {
+      padding: .4rem .95rem;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #8b949e;
+      font-size: .88rem;
+      font-weight: 500;
+      transition: all .2s;
+    }
+
+    .nav-links a:hover { color:#cdd9e5; background:rgba(255,255,255,0.05); }
+
+    .nav-links a.active {
+      color: #388bfd;
+      background: rgba(56,139,253,0.10);
+      border: 1px solid rgba(56,139,253,0.2);
+    }
+
+    .nav-links .nav-register {
+      background: #388bfd;
+      color: #fff !important;
+      font-weight: 600;
+      border: none !important;
+    }
+
+    .nav-links .nav-register:hover {
+      background: #4a9bff;
+      transform: translateY(-1px);
+    }
+
+    
+    .login-page {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 66px);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    
+    .left-panel {
+      padding: 5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid rgba(56,139,253,0.10);
+      background: linear-gradient(160deg, rgba(8,15,26,0.9) 0%, rgba(13,24,42,0.6) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56,139,253,0.3), transparent);
+    }
+
+    .left-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(56,139,253,0.08);
+      border: 1px solid rgba(56,139,253,0.18);
+      color: #388bfd;
+      padding: .32rem .9rem;
+      border-radius: 99px;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      width: fit-content;
+    }
+
+    .left-panel h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 3.5vw, 3rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.12;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.2rem;
+    }
+
+    .left-panel h1 .gradient-text {
+      background: linear-gradient(135deg, #388bfd 0%, #39d0d8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
+    .left-panel > p {
+      color: #8b949e;
+      font-size: .97rem;
+      line-height: 1.75;
+      max-width: 400px;
+      margin-bottom: 3rem;
+    }
+
+    /* Feature list */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .9rem 1.1rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(56,139,253,0.10);
+      border-radius: 12px;
+      transition: border-color .2s, background .2s;
+    }
+
+    .feature-item:hover {
+      border-color: rgba(56,139,253,0.25);
+      background: rgba(56,139,253,0.05);
+    }
+
+    .fi-icon {
+      width: 40px; height: 40px;
+      background: rgba(56,139,253,0.1);
+      border: 1px solid rgba(56,139,253,0.2);
+      border-radius: 10px;
+      display: flex; align-items:center; justify-content:center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .fi-text strong {
+      display: block;
+      color: #cdd9e5;
+      font-size: .88rem;
+      font-weight: 600;
+      margin-bottom: .1rem;
+    }
+
+    .fi-text span {
+      color: #4a5568;
+      font-size: .78rem;
+    }
+
+    
+    .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2.5rem;
+      background: #04090f;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 390px;
+      animation: riseUp .55s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes riseUp {
+      from { opacity:0; transform:translateY(30px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .form-top { margin-bottom: 2.4rem; }
+
+    .form-top .welcome {
+      font-size: .8rem;
+      font-weight: 700;
+      color: #388bfd;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: .5rem;
+    }
+
+    .form-top h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: .5rem;
+    }
+
+    .form-top p { color: #8b949e; font-size: .9rem; }
+
+    
+    .field { margin-bottom: 1.25rem; }
+
+    .field-label {
+      display: block;
+      margin-bottom: .48rem;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+
+    .field-inner { position: relative; }
+
+    .field-inner input {
+      width: 100%;
+      padding: .88rem 1rem .88rem 2.9rem;
+      background: rgba(13,24,42,0.8);
+      border: 1.5px solid rgba(56,139,253,0.15);
+      border-radius: 12px;
+      color: #fff;
+      font-size: .95rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: all .25s;
+    }
+
+    .field-inner input:focus {
+      border-color: #388bfd;
+      background: rgba(56,139,253,0.06);
+      box-shadow: 0 0 0 4px rgba(56,139,253,0.10);
+    }
+
+    .field-inner input::placeholder { color: #2d3748; }
+
+    .field-inner input.is-error {
+      border-color: #f75f67;
+      box-shadow: 0 0 0 3px rgba(247,95,103,0.12);
+    }
+
+    .f-icon {
+      position: absolute;
+      left: .95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      pointer-events: none;
+      opacity: .6;
+    }
+
+    .f-eye {
+      position: absolute;
+      right: .95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: .45;
+      transition: opacity .2s;
+      user-select: none;
+    }
+    .f-eye:hover { opacity: 1; }
+
+    .field-err {
+      color: #ffaaad;
+      font-size: .76rem;
+      margin-top: .38rem;
+      display: none;
+      padding-left: .2rem;
+    }
+
+    .field-err.show { display: block; animation: errPop .2s ease; }
+
+    @keyframes errPop {
+      from { opacity:0; transform:translateY(-4px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    
+    .submit-wrap { margin-top: 1.8rem; }
+
+    .btn-login {
+      width: 100%;
+      padding: 1rem;
+      background: #388bfd;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .01em;
+      position: relative;
+      overflow: hidden;
+      transition: all .25s;
+      box-shadow: 0 4px 24px rgba(56,139,253,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+    }
+
+    .btn-login::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.12), transparent 60%);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .btn-login:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(56,139,253,.5); }
+    .btn-login:hover::after { opacity:1; }
+    .btn-login:active { transform:translateY(0); }
+    .btn-login:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+
+    .btn-spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    
+    .or-line {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      margin: 1.8rem 0;
+      color: #2d3748;
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .or-line::before, .or-line::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(56,139,253,0.10);
+    }
+
+    
+    .bottom-links { text-align:center; }
+
+    .bottom-links p {
+      color: #8b949e;
+      font-size: .87rem;
+      margin-bottom: .5rem;
+    }
+
+    .bottom-links a {
+      color: #388bfd;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color .2s;
+    }
+
+    .bottom-links a:hover { color: #39d0d8; }
+
+    
+    #toastBox {
+      position: fixed;
+      top: 1.4rem;
+      right: 1.4rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      padding: 1rem 1.3rem;
+      border-radius: 14px;
+      font-size: .88rem;
+      font-weight: 500;
+      min-width: 280px;
+      max-width: 360px;
+      pointer-events: all;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 10px 40px rgba(0,0,0,.5);
+      animation: tIn .4s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    .toast.out { animation: tOut .3s ease forwards; }
+
+    @keyframes tIn  { from{opacity:0;transform:translateX(50px) scale(.94)} to{opacity:1;transform:none} }
+    @keyframes tOut { from{opacity:1;transform:none} to{opacity:0;transform:translateX(50px) scale(.94)} }
+
+    .t-success { background:rgba(8,26,18,.95);  border:1px solid rgba(61,214,140,.3);  color:#7ee8b5; }
+    .t-danger  { background:rgba(26,8,10,.95);  border:1px solid rgba(247,95,103,.3);  color:#ffaaad; }
+    .t-warning { background:rgba(26,20,6,.95);  border:1px solid rgba(240,136,62,.3);  color:#ffc08a; }
+    .t-info    { background:rgba(6,14,28,.95);  border:1px solid rgba(56,139,253,.3);  color:#93bbfd; }
+
+    .t-body { flex:1; line-height:1.45; }
+    .t-close {
+      cursor:pointer; opacity:.4; font-size:.9rem;
+      background:none; border:none; color:inherit;
+      transition:opacity .2s; padding:0; line-height:1;
+      flex-shrink:0;
+    }
+    .t-close:hover { opacity:1; }
+
+    
+    .site-footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 1.8rem 2rem;
+      color: #2d3748;
+      font-size: .8rem;
+      border-top: 1px solid rgba(56,139,253,0.08);
+    }
+
+    
+    @media (max-width: 820px) {
+      .login-page { grid-template-columns: 1fr; }
+      .left-panel  { display: none; }
+      .right-panel { padding: 2rem 1.2rem; min-height: calc(100vh - 66px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-layer">
+  <div class="bg-grid"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+  <div class="bg-glow3"></div>
+</div>
+
+<!-- Toast container -->
+<div id="toastBox"></div>
+
+<!-- Flask flash messages — hidden, read by JS toast engine below -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flaskMessages" style="display:none">
+  {% for category, message in messages %}
+  <span data-type="{{ category }}" data-msg="{{ message }}"></span>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      🗳️ Block<span class="blue">Vote</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/register" class="nav-register">Register</a>
+      <a href="/login" class="active">Login</a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="login-page">
+
+  <!-- LEFT: Branding -->
+  <div class="left-panel">
+    <div class="left-eyebrow">
+      <span>⚡</span> Secure Voting Platform
+    </div>
+
+    <h1>
+      Democracy<br>
+      <span class="gradient-text">Reimagined.</span>
+    </h1>
+
+    <p>
+      A blockchain-powered election system that ensures every
+      vote is counted once, recorded permanently, and protected
+      from any form of manipulation.
+    </p>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="fi-icon">🔐</div>
+        <div class="fi-text">
+          <strong>SHA-256 Encryption</strong>
+          <span>Every password hashed, every vote secured</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">⛓️</div>
+        <div class="fi-text">
+          <strong>Blockchain Ledger</strong>
+          <span>Votes linked in a tamper-proof chain</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">🛡️</div>
+        <div class="fi-text">
+          <strong>One Person, One Vote</strong>
+          <span>Duplicate voting blocked at database level</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">📊</div>
+        <div class="fi-text">
+          <strong>Live Results</strong>
+          <span>Instant, accurate vote tallying</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form -->
+  <div class="right-panel">
+    <div class="form-box">
+
+      <div class="form-top">
+        <div class="welcome">Voter Portal</div>
+        <h2>Sign in to<br>your account</h2>
+        <p>Use your Voter ID and password to continue.</p>
+      </div>
+
+      <form id="loginForm" method="POST" action="/login" novalidate>
+
+        <!-- Voter ID -->
+        <div class="field">
+          <label class="field-label" for="voter_id">Voter ID</label>
+          <div class="field-inner">
+            <span class="f-icon">🪪</span>
+            <input
+              type="text"
+              id="voter_id"
+              name="voter_id"
+              placeholder="VTR12345678"
+              autocomplete="username"
+              spellcheck="false"
+            />
+          </div>
+          <div class="field-err" id="err-id">Please enter your Voter ID.</div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <label class="field-label" for="password">Password</label>
+          <div class="field-inner">
+            <span class="f-icon">🔑</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              style="padding-right:2.8rem"
+            />
+            <span class="f-eye" id="eyeBtn">👁️</span>
+          </div>
+          <div class="field-err" id="err-pw">Please enter your password.</div>
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-wrap">
+          <button type="submit" class="btn-login" id="loginBtn">
+            <span id="btnLabel">Login &amp; Vote →</span>
+            <div class="btn-spinner" id="spinner"></div>
+          </button>
+        </div>
+
+      </form>
+
+      <div class="or-line">or</div>
+
+      <div class="bottom-links">
+        <p>No account yet? <a href="/register">Register as a voter</a></p>
+        <p>Admin access? <a href="/admin/login">Go to admin portal →</a></p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  &copy; 2024 BlockVote &mdash; Blockchain-Lite Voting System &mdash; Batch 87
+</footer>
+
+<script>
+  
+  const ICONS = { success:'✅', danger:'❌', warning:'⚠️', info:'ℹ️' };
+
+  function toast(msg, type = 'info', ms = 4500) {
+    const box = document.getElementById('toastBox');
+    const el  = document.createElement('div');
+    el.className = `toast t-${type}`;
+    el.innerHTML = `
+      <span>${ICONS[type]||'ℹ️'}</span>
+      <span class="t-body">${msg}</span>
+      <button class="t-close" onclick="killToast(this.parentElement)">✕</button>`;
+    box.appendChild(el);
+    if (ms > 0) setTimeout(() => killToast(el), ms);
+  }
+
+  function killToast(el) {
+    if (!el || !el.parentElement) return;
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 320);
+  }
+
+  
+  const eyeBtn = document.getElementById('eyeBtn');
+  const pwField = document.getElementById('password');
+
+  eyeBtn.addEventListener('click', () => {
+    const show = pwField.type === 'password';
+    pwField.type = show ? 'text' : 'password';
+    eyeBtn.textContent = show ? '🙈' : '👁️';
+    pwField.focus();
+  });
+
+  
+  function setErr(inputId, errId, on) {
+    const inp = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    on ? inp.classList.add('is-error') : inp.classList.remove('is-error');
+    err.classList.toggle('show', on);
+  }
+
+  document.getElementById('voter_id').addEventListener('input',
+    () => setErr('voter_id','err-id', false));
+  document.getElementById('password').addEventListener('input',
+    () => setErr('password','err-pw', false));
+
+  
+  (function() {
+    var container = document.getElementById('flaskMessages');
+    if (!container) return;
+    var spans = container.querySelectorAll('span[data-msg]');
+    spans.forEach(function(s) {
+      toast(s.getAttribute('data-msg'), s.getAttribute('data-type') || 'info');
+    });
+  })();
+
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const id = document.getElementById('voter_id').value.trim();
+    const pw = document.getElementById('password').value;
+    let ok = true;
+
+    if (!id) { setErr('voter_id','err-id', true); ok = false; }
+    if (!pw) { setErr('password','err-pw', true); ok = false; }
+
+    if (!ok) { e.preventDefault(); return; }
+
+    /* Loading state */
+    const btn = document.getElementById('loginBtn');
+    document.getElementById('btnLabel').style.display = 'none';
+    document.getElementById('spinner').style.display  = 'block';
+    btn.disabled = true;
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,139,253,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,.04) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(56,139,253,.09) 0%,transparent 60%);animation:g1 16s ease-in-out infinite alternate}
+    .bg-glow2{position:absolute;bottom:-20%;right:-10%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(57,208,216,.06) 0%,transparent 60%);animation:g2 20s ease-in-out infinite alternate}
+    @keyframes g1{from{transform:translate(0,0)}to{transform:translate(8%,6%)}}
+    @keyframes g2{from{transform:translate(0,0)}to{transform:translate(-6%,-5%)}}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(56,139,253,.10)}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.03em}
+    .nav-brand .blue{color:#388bfd}
+    .nav-links{display:flex;gap:.3rem}
+    .nav-links a{padding:.4rem .95rem;border-radius:8px;text-decoration:none;color:#8b949e;font-size:.88rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover{color:#cdd9e5;background:rgba(255,255,255,.05)}
+    .nav-links .active{color:#388bfd;background:rgba(56,139,253,.10);border:1px solid rgba(56,139,253,.18)}
+    main{flex:1;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem}
+    .card{width:100%;max-width:500px;background:rgba(13,24,42,.82);border:1px solid rgba(56,139,253,.12);border-radius:22px;padding:2.5rem 2.4rem;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:cardIn .5s cubic-bezier(.16,1,.3,1) both}
+    @keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+    .steps{display:flex;align-items:center;justify-content:center;gap:.4rem;margin-bottom:1.8rem}
+    .step{display:flex;align-items:center;gap:.3rem;font-size:.74rem;font-weight:600;color:#2d3748;white-space:nowrap}
+    .step.active{color:#388bfd}
+    .step-c{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;flex-shrink:0}
+    .step-line{flex:1;height:1.5px;background:rgba(255,255,255,.07);max-width:32px}
+    .card-icon{font-size:2.4rem;text-align:center;margin-bottom:.6rem}
+    .card-title{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#fff;text-align:center;letter-spacing:-.04em;margin-bottom:.3rem}
+    .card-title .blue{color:#388bfd}
+    .card-sub{color:#8b949e;font-size:.86rem;text-align:center;margin-bottom:1.4rem;line-height:1.6}
+    .flash{display:flex;align-items:flex-start;gap:.55rem;padding:.7rem 1rem;border-radius:10px;font-size:.84rem;font-weight:500;margin-bottom:.9rem}
+    .flash-success{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);color:#7ee8b5}
+    .flash-danger{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.25);color:#ffaaad}
+    .flash-warning{background:rgba(240,136,62,.08);border:1px solid rgba(240,136,62,.25);color:#ffc08a}
+    .flash-info{background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);color:#93bbfd}
+    /* Fields */
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:.76rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.38rem}
+    .field-wrap{position:relative}
+    .f-icon{position:absolute;left:.88rem;top:50%;transform:translateY(-50%);font-size:.95rem;pointer-events:none;opacity:.5}
+    .field input{width:100%;padding:.78rem 1rem .78rem 2.6rem;background:rgba(4,9,15,.7);border:1.5px solid rgba(56,139,253,.10);border-radius:11px;color:#fff;font-size:.93rem;font-family:'DM Sans',sans-serif;outline:none;transition:all .2s}
+    .field input:focus{border-color:#388bfd;background:rgba(56,139,253,.04);box-shadow:0 0 0 3px rgba(56,139,253,.08)}
+    .field input::placeholder{color:#2d3748}
+    .field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5);cursor:pointer}
+    .age-bar{margin-top:.35rem;font-size:.77rem;padding:.3rem .7rem;border-radius:7px;font-weight:600;display:none;align-items:center;gap:.4rem}
+    .age-ok{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.22);color:#3dd68c}
+    .age-fail{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.22);color:#ffaaad}
+    .aadhar-hint{font-size:.75rem;color:#4a5568;margin-top:.3rem}
+    .aadhar-hint{font-size:.75rem;color:#4a5568;margin-top:.3rem}
+    .strength-wrap{margin-top:.35rem;display:none}
+    .strength-bar{height:4px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+    .strength-fill{height:100%;border-radius:99px;transition:width .3s,background .3s;width:0}
+    .strength-label{font-size:.71rem;margin-top:.22rem}
+    .match-msg{font-size:.74rem;margin-top:.28rem}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+    .btn-submit{width:100%;padding:.9rem;margin-top:.4rem;background:linear-gradient(135deg,#1a3a6a,#388bfd);color:#fff;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:.97rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 4px 24px rgba(56,139,253,.22);display:flex;align-items:center;justify-content:center;gap:.5rem}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(56,139,253,.38)}
+    .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .divider{border:none;border-top:1px solid rgba(56,139,253,.08);margin:1.3rem 0}
+    .card-footer{text-align:center;font-size:.85rem;color:#4a5568}
+    .card-footer a{color:#388bfd;text-decoration:none;font-weight:600}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.2rem;color:#2d3748;font-size:.77rem;border-top:1px solid rgba(56,139,253,.06)}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div><div class="bg-glow2"></div></div>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">🗳️ Block<span class="blue">Vote</span></a>
+    <div class="nav-links">
+      <a href="/">Home</a><a href="/login">Login</a><a href="/register" class="active">Register</a>
+    </div>
+  </div>
+</nav>
+<main>
+  <div class="card">
+    <div class="steps">
+      <div class="step active"><div class="step-c">1</div>&nbsp;Details</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-c">2</div>&nbsp;Verify OTP</div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-c">3</div>&nbsp;Voter ID</div>
+    </div>
+    <div class="card-icon">🗳️</div>
+    <div class="card-title">Create <span class="blue">Account</span></div>
+    <p class="card-sub">Must be <strong style="color:#e8b84b">18+</strong> · Valid Aadhar required · OTP sent to verify your contact</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          {% if category=='success' %}✅{% elif category=='danger' %}❌{% elif category=='warning' %}⚠️{% else %}ℹ️{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/register" id="regForm">
+
+      <input type="hidden" name="contact_type" value="email"/>
+
+      <!-- Email input -->
+      <div class="field">
+        <label>Email Address</label>
+        <div class="field-wrap">
+          <span class="f-icon">📧</span>
+          <input type="email" name="contact" id="emailInput" placeholder="you@example.com" required autocomplete="email"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Full Name</label>
+        <div class="field-wrap">
+          <span class="f-icon">👤</span>
+          <input type="text" name="name" placeholder="Enter your full name" required autocomplete="name"/>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>Aadhar Number</label>
+          <div class="field-wrap">
+            <span class="f-icon">🪪</span>
+            <input type="text" name="aadhar" id="aadharInput" placeholder="12-digit number" maxlength="12" inputmode="numeric" oninput="checkAadhar(this.value)"/>
+          </div>
+          <div class="aadhar-hint" id="aadharHint">Enter 12-digit Aadhar</div>
+        </div>
+        <div class="field">
+          <label>Date of Birth <span style="color:#4a5568;font-size:.7rem;text-transform:none">(18+ only)</span></label>
+          <div class="field-wrap">
+            <span class="f-icon">🎂</span>
+            <input type="date" name="dob" id="dobInput" required oninput="checkAge(this.value)"/>
+          </div>
+          <div class="age-bar" id="ageBar"></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>Password</label>
+          <div class="field-wrap">
+            <span class="f-icon">🔒</span>
+            <input type="password" name="password" id="fpw" placeholder="Min 6 chars" required minlength="6" oninput="checkStrength(this.value)"/>
+          </div>
+          <div class="strength-wrap" id="strengthWrap">
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            <div class="strength-label" id="strengthLabel"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <div class="field-wrap">
+            <span class="f-icon">🔑</span>
+            <input type="password" name="confirm" id="fconfirm" placeholder="Re-enter" required oninput="checkMatch()"/>
+          </div>
+          <div class="match-msg" id="matchMsg"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">📨 Send Verification Code →</button>
+    </form>
+
+    <hr class="divider"/>
+    <div class="card-footer">Already registered? <a href="/login">Login →</a></div>
+  </div>
+</main>
+<footer class="site-footer">&copy; BlockVote — Blockchain-Lite Voting System — Batch 87</footer>
+
+<script>
+/* Form submit validation */
+document.getElementById('regForm').addEventListener('submit', function(e) {
+  var pw  = document.getElementById('fpw').value;
+  var cfm = document.getElementById('fconfirm').value;
+  if (pw !== cfm) { e.preventDefault(); alert('Passwords do not match.'); return; }
+  var aadhar = document.getElementById('aadharInput').value.replace(/\s/g,'');
+  if (aadhar.length !== 12 || isNaN(aadhar)) { e.preventDefault(); alert('Aadhar must be exactly 12 digits.'); return; }
+  var dob = document.getElementById('dobInput').value;
+  if (dob) {
+    var d = new Date(dob), t = new Date(), age = t.getFullYear() - d.getFullYear();
+    var m = t.getMonth() - d.getMonth();
+    if (m < 0 || (m===0 && t.getDate() < d.getDate())) age--;
+    if (age < 18) { e.preventDefault(); alert('You must be 18 or older to register.'); return; }
+  }
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '⏳ Sending code…';
+});
+
+/* Aadhar checker */
+function checkAadhar(val) {
+  val = val.replace(/\D/g,'');
+  document.getElementById('aadharInput').value = val;
+  var hint = document.getElementById('aadharHint');
+  if (val.length === 0) { hint.textContent = 'Enter 12-digit Aadhar'; hint.style.color = '#4a5568'; }
+  else if (val.length < 12) { hint.textContent = `${val.length}/12 digits`; hint.style.color = '#ffc08a'; }
+  else { hint.textContent = '✅ Valid Aadhar format'; hint.style.color = '#3dd68c'; }
+}
+
+/* Age checker */
+(function(){
+  var today = new Date();
+  var max = new Date(today.getFullYear()-18, today.getMonth(), today.getDate());
+  var min = new Date(today.getFullYear()-120, 0, 1);
+  function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  document.getElementById('dobInput').max = fmt(max);
+  document.getElementById('dobInput').min = fmt(min);
+})();
+
+function checkAge(val) {
+  var bar = document.getElementById('ageBar');
+  if (!val) { bar.style.display='none'; return; }
+  var d = new Date(val), t = new Date();
+  var age = t.getFullYear() - d.getFullYear();
+  var m = t.getMonth() - d.getMonth();
+  if (m < 0 || (m===0 && t.getDate() < d.getDate())) age--;
+  bar.style.display = 'flex';
+  if (age >= 18) { bar.className='age-bar age-ok'; bar.textContent='✅ Age: '+age+' years — Eligible to vote'; }
+  else if (age >= 0) { bar.className='age-bar age-fail'; bar.textContent='❌ Age: '+age+' — Must be 18+ to register'; }
+  else { bar.className='age-bar age-fail'; bar.textContent='❌ Invalid date'; }
+}
+
+/* Password strength */
+function checkStrength(val) {
+  var wrap=document.getElementById('strengthWrap'), fill=document.getElementById('strengthFill'), label=document.getElementById('strengthLabel');
+  wrap.style.display = val ? 'block' : 'none';
+  if (!val) return;
+  var s=0;
+  if(val.length>=6)s++;if(val.length>=10)s++;if(/[A-Z]/.test(val))s++;if(/[0-9]/.test(val))s++;if(/[^A-Za-z0-9]/.test(val))s++;
+  var l=[{w:'20%',bg:'#f75f67',t:'Weak',c:'#ffaaad'},{w:'40%',bg:'#f59e0b',t:'Fair',c:'#fcd34d'},{w:'60%',bg:'#f59e0b',t:'Good',c:'#fcd34d'},{w:'80%',bg:'#3dd68c',t:'Strong',c:'#7ee8b5'},{w:'100%',bg:'#3dd68c',t:'Very Strong',c:'#7ee8b5'}][Math.min(s,4)];
+  fill.style.width=l.w;fill.style.background=l.bg;label.textContent=l.t;label.style.color=l.c;
+}
+
+/* Confirm match */
+function checkMatch() {
+  var pw=document.getElementById('fpw').value, cfm=document.getElementById('fconfirm'), msg=document.getElementById('matchMsg');
+  if (!cfm.value){msg.textContent='';return;}
+  if(cfm.value===pw){cfm.style.borderColor='rgba(61,214,140,.4)';msg.textContent='✅ Passwords match';msg.style.color='#7ee8b5';}
+  else{cfm.style.borderColor='rgba(247,95,103,.5)';msg.textContent='❌ Passwords do not match';msg.style.color='#ffaaad';}
+}
+</script>
+</body>
+</html>

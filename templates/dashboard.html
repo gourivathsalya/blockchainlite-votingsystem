@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | BlockVote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'DM Sans',sans-serif;background:#04090f;color:#cdd9e5;min-height:100vh;-webkit-font-smoothing:antialiased}
+    .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,139,253,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,.04) 1px,transparent 1px);background-size:44px 44px}
+    .bg-glow1{position:absolute;top:-30%;left:-15%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(56,139,253,.09) 0%,transparent 60%);animation:g1 16s ease-in-out infinite alternate}
+    .bg-glow2{position:absolute;bottom:-20%;right:-10%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(57,208,216,.06) 0%,transparent 60%);animation:g2 20s ease-in-out infinite alternate}
+    @keyframes g1{from{transform:translate(0,0)}to{transform:translate(8%,6%)}}
+    @keyframes g2{from{transform:translate(0,0)}to{transform:translate(-6%,-5%)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .navbar{position:sticky;top:0;z-index:100;background:rgba(4,9,15,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(56,139,253,.10)}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-.03em}
+    .nav-brand .blue{color:#388bfd}
+    .nav-links{display:flex;align-items:center;gap:.3rem}
+    .nav-links a{padding:.4rem .95rem;border-radius:8px;text-decoration:none;color:#8b949e;font-size:.88rem;font-weight:500;transition:all .2s}
+    .nav-links a:hover{color:#cdd9e5;background:rgba(255,255,255,.05)}
+    .nav-links .active{color:#388bfd;background:rgba(56,139,253,.10);border:1px solid rgba(56,139,253,.18)}
+    .nav-logout{background:#f75f67!important;color:#fff!important;font-weight:600!important}
+    .page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:2.5rem 2rem 5rem}
+    .flash{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.1rem;border-radius:10px;font-size:.88rem;font-weight:500;margin-bottom:1.2rem}
+    .flash-success{background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);color:#7ee8b5}
+    .flash-danger{background:rgba(247,95,103,.08);border:1px solid rgba(247,95,103,.25);color:#ffaaad}
+    .flash-warning{background:rgba(240,136,62,.08);border:1px solid rgba(240,136,62,.25);color:#ffc08a}
+    .flash-info{background:rgba(56,139,253,.08);border:1px solid rgba(56,139,253,.25);color:#93bbfd}
+    .welcome-card{background:rgba(13,24,42,.7);border:1px solid rgba(56,139,253,.12);border-radius:18px;padding:1.8rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .wc-left{display:flex;align-items:center;gap:1.2rem}
+    .wc-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#1a3a6a,#388bfd);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+    .wc-name{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;color:#fff}
+    .wc-id{color:#388bfd;font-family:'Courier New',monospace;font-size:.85rem;margin-top:.15rem}
+    .wc-meta{color:#8b949e;font-size:.78rem;margin-top:.1rem}
+    .badge-voted{display:inline-flex;align-items:center;gap:.4rem;background:rgba(61,214,140,.10);border:1px solid rgba(61,214,140,.25);color:#7ee8b5;padding:.35rem .9rem;border-radius:99px;font-size:.82rem;font-weight:600}
+    .badge-pending{display:inline-flex;align-items:center;gap:.4rem;background:rgba(240,136,62,.10);border:1px solid rgba(240,136,62,.25);color:#ffc08a;padding:.35rem .9rem;border-radius:99px;font-size:.82rem;font-weight:600}
+    .btn-vote-now{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.3rem;background:#e8b84b;color:#0a0600;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;text-decoration:none;transition:all .2s}
+    .btn-vote-now:hover{background:#f0c85a;transform:translateY(-2px)}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+    .stat-card{background:rgba(13,24,42,.7);border:1px solid rgba(56,139,253,.08);border-radius:16px;padding:1.2rem 1.4rem;position:relative;overflow:hidden;transition:transform .2s}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+    .sc-blue::before{background:linear-gradient(90deg,#1a3a6a,#388bfd)}.sc-green::before{background:linear-gradient(90deg,#0d3320,#3dd68c)}.sc-gold::before{background:linear-gradient(90deg,#7a5c10,#e8b84b)}.sc-cyan::before{background:linear-gradient(90deg,#0a2a30,#39d0d8)}
+    .stat-icon{font-size:1.4rem;margin-bottom:.6rem}
+    .stat-num{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;line-height:1;margin-bottom:.2rem}
+    .sc-blue .stat-num{color:#388bfd}.sc-green .stat-num{color:#3dd68c}.sc-gold .stat-num{color:#e8b84b}.sc-cyan .stat-num{color:#39d0d8}
+    .stat-label{color:#8b949e;font-size:.76rem;font-weight:500}
+    .receipt-card{background:rgba(61,214,140,.05);border:1px solid rgba(61,214,140,.20);border-radius:14px;padding:1.4rem;display:flex;align-items:center;gap:1.2rem;margin-bottom:1.5rem;flex-wrap:wrap}
+    .receipt-icon{font-size:2.2rem;flex-shrink:0}
+    .receipt-title{font-family:'Syne',sans-serif;font-weight:700;color:#7ee8b5;font-size:1rem;margin-bottom:.25rem}
+    .receipt-detail{color:#8b949e;font-size:.85rem;line-height:1.6}
+    .receipt-hash{font-family:'Courier New',monospace;font-size:.72rem;color:#39d0d8;word-break:break-all;margin-top:.4rem;background:rgba(57,208,216,.06);padding:.4rem .6rem;border-radius:6px}
+    .section{background:rgba(13,24,42,.7);border:1px solid rgba(56,139,253,.08);border-radius:18px;padding:1.8rem;margin-bottom:1.5rem}
+    .section-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem}
+    .section-sub{color:#4a5568;font-size:.76rem;font-weight:400;margin-left:auto}
+    .rdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#3dd68c;animation:pulse 1.4s ease-in-out infinite;margin-right:.3rem}
+    .chart-wrap{position:relative;height:240px;margin-bottom:1rem}
+    .result-row{display:flex;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:1px solid rgba(56,139,253,.06)}
+    .result-row:last-child{border-bottom:none}
+    .rr-rank{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#2d3748;width:28px;flex-shrink:0;text-align:center}
+    .rr-rank.gold{color:#e8b84b}
+    .rr-emoji{font-size:1.8rem;flex-shrink:0}
+    .rr-info{flex:1;min-width:0}
+    .rr-name{font-weight:700;color:#fff;font-size:.9rem}
+    .rr-party{color:#8b949e;font-size:.75rem;margin-bottom:.3rem}
+    .prog-bar{background:rgba(255,255,255,.06);border-radius:99px;height:5px;overflow:hidden}
+    .prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#1a3a6a,#388bfd);transition:width 1s cubic-bezier(.16,1,.3,1)}
+    .winner .prog-fill{background:linear-gradient(90deg,#7a5c10,#e8b84b)}
+    .rr-count{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#388bfd;line-height:1}
+    .winner .rr-count{color:#e8b84b}
+    .rr-pct{color:#8b949e;font-size:.72rem;text-align:right}
+    /* Tabs */
+    .tabs{display:flex;gap:.3rem;border-bottom:1px solid rgba(56,139,253,.08);margin-bottom:1.2rem}
+    .tab{padding:.6rem 1.1rem;border-radius:10px 10px 0 0;font-size:.86rem;font-weight:600;color:#8b949e;cursor:pointer;transition:all .2s;border:1px solid transparent;border-bottom:none;margin-bottom:-1px}
+    .tab:hover{color:#cdd9e5;background:rgba(56,139,253,.05)}
+    .tab.active{color:#388bfd;background:rgba(56,139,253,.08);border-color:rgba(56,139,253,.12)}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    /* Settings form */
+    .settings-input{width:100%;padding:.75rem 1rem;background:rgba(4,9,15,.7);border:1.5px solid rgba(56,139,253,.10);border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:all .2s;margin-bottom:.8rem}
+    .settings-input:focus{border-color:#388bfd;box-shadow:0 0 0 3px rgba(56,139,253,.08)}
+    .settings-input::placeholder{color:#2d3748}
+    .form-label{display:block;font-size:.74rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+    .btn-save{padding:.75rem 1.5rem;background:linear-gradient(135deg,#1a3a6a,#388bfd);color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn-save:hover{transform:translateY(-1px)}
+    .match-msg{font-size:.74rem;margin-top:-.4rem;margin-bottom:.6rem}
+    .page-tag{font-size:.75rem;font-weight:700;color:#388bfd;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.3rem}
+    .page-title{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:1.5rem}
+    .btn-out{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.6rem;background:transparent;color:#388bfd;border:1.5px solid rgba(56,139,253,.25);border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;transition:all .2s}
+    .btn-out:hover{background:rgba(56,139,253,.08)}
+    .site-footer{position:relative;z-index:1;text-align:center;padding:1.8rem 2rem;color:#2d3748;font-size:.8rem;border-top:1px solid rgba(56,139,253,.08)}
+    @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.nav-inner{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}.stats-row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-glow1"></div><div class="bg-glow2"></div></div>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">🗳️ Block<span class="blue">Vote</span></a>
+    <div class="nav-links">
+      <a href="/">Home</a><a href="/vote">Vote</a><a href="/dashboard" class="active">Dashboard</a>
+      <a href="/logout" class="nav-logout">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-tag">👤 Voter Portal</div>
+  <div class="page-title">My Dashboard</div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        {% if category=='success' %}✅{% elif category=='danger' %}❌{% elif category=='warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  
+  <div class="welcome-card">
+    <div class="wc-left">
+      <div class="wc-avatar">🗳️</div>
+      <div>
+        <div class="wc-name">{{ voter['name'] }}</div>
+        <div class="wc-id">{{ voter['voter_id'] }}</div>
+        <div class="wc-meta">
+          {% if voter.get('email') %}📧 {{ voter['email'] }}{% endif %}
+          {% if voter.get('phone') %}📱 {{ voter['phone'] }}{% endif %}
+          {% if voter.get('age') %} · Age: {{ voter['age'] }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% if voter['has_voted'] %}
+      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <span class="badge-voted">✅ Vote Recorded</span>
+        <a href="/receipt" class="btn-vote-now" style="background:rgba(61,214,140,.15);color:#3dd68c;border:1px solid rgba(61,214,140,.25)">🧾 View Receipt</a>
+      </div>
+    {% else %}
+      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <span class="badge-pending">⏳ Not Yet Voted</span>
+        {% if election['is_open'] %}<a href="/vote" class="btn-vote-now">🗳️ Vote Now →</a>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+ 
+  <div class="stats-row">
+    <div class="stat-card sc-blue"><div class="stat-icon">👥</div><div class="stat-num" id="dVoters">{{ total_voters }}</div><div class="stat-label">Registered Voters</div></div>
+    <div class="stat-card sc-green"><div class="stat-icon">✅</div><div class="stat-num" id="dVoted">{{ voted_count }}</div><div class="stat-label">Votes Cast</div></div>
+    <div class="stat-card sc-gold"><div class="stat-icon">📊</div><div class="stat-num" id="dTurnout">{{ ((voted_count / total_voters * 100) | int) if total_voters > 0 else 0 }}%</div><div class="stat-label">Voter Turnout</div></div>
+    <div class="stat-card sc-cyan">
+      <div class="stat-icon">⛓️</div>
+      <div class="stat-num">{% if chain_valid %}<span style="color:#3dd68c;font-size:1.5rem">✓</span>{% else %}<span style="color:#f75f67;font-size:1.5rem">✗</span>{% endif %}</div>
+      <div class="stat-label">Chain Integrity</div>
+    </div>
+  </div>
+
+  
+  {% if voter['has_voted'] %}
+  <div class="receipt-card">
+    <div class="receipt-icon">🧾</div>
+    <div style="flex:1">
+      <div class="receipt-title">✅ Vote Recorded on Blockchain</div>
+      <div class="receipt-detail">You voted for <strong style="color:#fff">{{ voter['voted_for'] }}</strong> on {{ voter['voted_at'] }}</div>
+      {% if voter['block_hash'] %}<div class="receipt-hash">🔗 {{ voter['block_hash'] }}</div>{% endif %}
+    </div>
+    <a href="/receipt" class="btn-vote-now" style="background:rgba(61,214,140,.15);color:#3dd68c;border:1px solid rgba(61,214,140,.25);flex-shrink:0">🖨️ Print Receipt</a>
+  </div>
+  {% endif %}
+
+ 
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('results')">📊 Live Results</div>
+    <div class="tab" onclick="switchTab('security')">🔒 Security</div>
+  </div>
+
+  
+  <div class="tab-panel active" id="panel-results">
+    <div class="section">
+      <div class="section-title">📊 Vote Distribution <span style="display:inline-flex;align-items:center;color:#3dd68c;font-size:.74rem;font-weight:600;margin-left:.3rem"><span class="rdot"></span>Live</span><span class="section-sub" id="chartTotal">Loading…</span></div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="section">
+      <div class="section-title">🏆 Live Standings<span class="section-sub" id="standSub">Loading…</span></div>
+      <div id="resultsList"><div style="text-align:center;padding:2rem;color:#4a5568">Loading…</div></div>
+    </div>
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+      <a href="/" class="btn-out">🌐 Public Results</a>
+      {% if not voter['has_voted'] and election['is_open'] %}<a href="/vote" class="btn-vote-now">🗳️ Cast Vote →</a>{% endif %}
+    </div>
+  </div>
+
+  
+  <div class="tab-panel" id="panel-security">
+    <div class="section">
+      <div class="section-title">🔒 Change Password</div>
+      <form method="POST" action="/change-password" style="max-width:400px">
+        <div style="margin-bottom:.8rem">
+          <label class="form-label">Current Password</label>
+          <input type="password" name="current_password" class="settings-input" placeholder="Enter current password" required/>
+        </div>
+        <div style="margin-bottom:.8rem">
+          <label class="form-label">New Password</label>
+          <input type="password" name="new_password" id="newpw" class="settings-input" placeholder="Min 6 characters" required minlength="6"/>
+        </div>
+        <div>
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" name="confirm_password" id="cfmpw" class="settings-input" placeholder="Re-enter new password" required oninput="chkPw()"/>
+        </div>
+        <div class="match-msg" id="pwMatch"></div>
+        <button type="submit" class="btn-save">🔒 Change Password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">&copy; BlockVote &mdash; Blockchain-Lite Voting System &mdash; Batch 87</footer>
+
+<script>
+/* Tab switch */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',['results','security'][i]===name);});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('panel-'+name).classList.add('active');
+  history.replaceState(null,'','#tab-'+name);
+}
+(function(){var h=window.location.hash;if(h&&h.startsWith('#tab-'))switchTab(h.replace('#tab-',''));})();
+
+/* Password match check */
+function chkPw(){
+  var pw=document.getElementById('newpw').value, cfm=document.getElementById('cfmpw'), msg=document.getElementById('pwMatch');
+  if(!cfm.value){msg.textContent='';return;}
+  if(cfm.value===pw){cfm.style.borderColor='rgba(61,214,140,.4)';msg.textContent='✅ Passwords match';msg.style.color='#7ee8b5';}
+  else{cfm.style.borderColor='rgba(247,95,103,.5)';msg.textContent='❌ Passwords do not match';msg.style.color='#ffaaad';}
+}
+
+/* Chart */
+var COLORS=['#e8b84b','#388bfd','#3dd68c','#f75f67','#39d0d8'];
+var barChart=null, nameOrder=[];
+function buildChart(cands){
+  nameOrder=cands.map(function(c){return c.name;});
+  var ctx=document.getElementById('barChart').getContext('2d');
+  barChart=new Chart(ctx,{type:'bar',data:{labels:cands.map(function(c){return c.emoji+' '+c.name.split(' ').pop();}),datasets:[{label:'Votes',data:cands.map(function(c){return c.vote_count;}),backgroundColor:COLORS.map(function(c){return c+'33';}),borderColor:COLORS,borderWidth:2,borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:800},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(13,24,42,0.95)',borderColor:'rgba(56,139,253,0.25)',borderWidth:1,titleColor:'#fff',bodyColor:'#cdd9e5',padding:12,callbacks:{title:function(i){return cands[i[0].dataIndex].name;},label:function(i){var t=i.dataset.data.reduce(function(a,b){return a+b;},0);var p=t>0?Math.round(i.raw/t*100):0;return ' '+i.raw+' votes ('+p+'%)';}}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8b949e'},border:{color:'rgba(255,255,255,0.06)'}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8b949e',stepSize:1,callback:function(v){return Number.isInteger(v)?v:''}},border:{color:'rgba(255,255,255,0.06)'}}}}});
+}
+function updateChart(cands){if(!barChart)return;barChart.data.datasets[0].data=nameOrder.map(function(n){var m=cands.filter(function(c){return c.name===n;})[0];return m?m.vote_count:0;});barChart.update('active');}
+function buildList(cands,total){
+  if(!cands||!cands.length)return '<div style="text-align:center;padding:2rem;color:#4a5568">No votes yet</div>';
+  var html='';
+  for(var i=0;i<cands.length;i++){var c=cands[i],pct=total>0?Math.round(c.vote_count/total*100):0,win=i===0&&c.vote_count>0;html+='<div class="result-row '+(win?'winner':'')+'"><div class="rr-rank '+(win?'gold':'')+'">'+( win?'👑':'#'+(i+1))+'</div><div class="rr-emoji">'+c.emoji+'</div><div class="rr-info"><div class="rr-name">'+c.name+'</div><div class="rr-party">'+c.party+'</div><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div></div><div style="text-align:right;flex-shrink:0"><div class="rr-count">'+c.vote_count+'</div><div class="rr-pct">'+pct+'%</div></div></div>';}
+  return html;
+}
+function loadData(){
+  fetch('/api/results').then(function(r){return r.json();}).then(function(data){
+    var total=data.total;
+    document.getElementById('dVoters').textContent=data.total_voters;
+    document.getElementById('dVoted').textContent=data.voted_count;
+    document.getElementById('dTurnout').textContent=data.turnout+'%';
+    document.getElementById('chartTotal').textContent=total+' total votes';
+    document.getElementById('standSub').textContent=total+' total votes';
+    if(!barChart){buildChart(data.candidates);}else{updateChart(data.candidates);}
+    document.getElementById('resultsList').innerHTML=buildList(data.candidates,total);
+  }).catch(function(){});
+}
+loadData();
+setInterval(loadData,5000);
+</script>
+</body>
+</html>
