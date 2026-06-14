@@ -9,8 +9,6 @@
 
 Traditional voting systems are vulnerable to manipulation and lack transparency. This project implements a **custom blockchain in Python** to store votes immutably, paired with a **Flask web application** featuring complete voter authentication, OTP verification, admin controls, and a live dashboard.
 
-Built as a **solo project** — designed and developed end-to-end.
-
 ---
 
 ## ✨ Features
